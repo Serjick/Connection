@@ -3,9 +3,14 @@ language: php
 php:
   - 5.5
   - 5.4
+  - hhvm
 
 before_script: phpenv config-add travis.config.ini
 
 install: composer install --dev
 
 script: ./vendor/bin/phpunit
+
+matrix:
+  allow_failures:
+    - php: hhvm
