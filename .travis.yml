@@ -14,5 +14,8 @@ install: composer install --dev
 script: ./vendor/bin/phpunit
 
 matrix:
+  include:
+    - php: hhvm
+      env: PHP_EXT="memcached"
   allow_failures:
     - php: hhvm
