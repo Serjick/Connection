@@ -33,7 +33,19 @@ class Set extends PDO
 
     private function getResourceLastInsertId()
     {
-        return $this->last_id === null ? $this->last_id = (int) $this->getResource()->lastInsertId() : $this->last_id;
+        if ($this->last_id === null) {
+            try {
+                $resource = $this->getResource();
+            } catch (\Exception $e) {
+                $this->error = $e;
+            }
+
+            if (isset($resource)) {
+                $this->last_id = (int) $resource->lastInsertId();
+            }
+        }
+
+        return $this->last_id;
     }
 
     /**

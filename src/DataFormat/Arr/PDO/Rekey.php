@@ -30,29 +30,32 @@ class Rekey implements IArr
         if ($this->data && $this->cache === null) {
 
             $result = [];
-            foreach ($this->data as $row) {
 
-                $cutted = null;
+            try {
+                foreach ($this->data as $row) {
 
-                if (!$this->value_name) {
-                    $cutted = $row;
-                    unset($cutted[$this->key_name]);
-                }
+                    $cutted = null;
 
-                if ($this->key_name) {
-                    if ($this->grouping) {
-                        $result[$row[$this->key_name]][] =
-                            $this->value_name ? $row[$this->value_name] : $cutted;
-                    } else {
-                        $result[$row[$this->key_name]] =
-                            $this->value_name ? $row[$this->value_name] : $cutted;
+                    if (!$this->value_name) {
+                        $cutted = $row;
+                        unset($cutted[$this->key_name]);
                     }
 
-                } else {
-                    $result[] = $this->value_name ? $row[$this->value_name] : $cutted;
-                }
+                    if ($this->key_name) {
+                        if ($this->grouping) {
+                            $result[$row[$this->key_name]][] =
+                                $this->value_name ? $row[$this->value_name] : $cutted;
+                        } else {
+                            $result[$row[$this->key_name]] =
+                                $this->value_name ? $row[$this->value_name] : $cutted;
+                        }
 
-            }
+                    } else {
+                        $result[] = $this->value_name ? $row[$this->value_name] : $cutted;
+                    }
+
+                }
+            } catch (\Exception $e) {}
 
             $this->cache = $result;
 
