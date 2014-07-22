@@ -6,7 +6,9 @@ use Imhonet\Connection\DataFormat\IArr;
 
 class Group implements IArr
 {
-
+    /**
+     * @var \PDOStatement|bool
+     */
     private $data;
 
     private $groups = [];
@@ -36,19 +38,23 @@ class Group implements IArr
     {
         $result = [];
 
-        foreach ($this->data as $row) {
-            $cutted = $row;
-            $point = & $result;
-            foreach ($this->groups as $group) {
-                assert(isset($cutted[$group]));
+        if ($this->data) {
+            try {
+                foreach ($this->data as $row) {
+                    $cutted = $row;
+                    $point = & $result;
+                    foreach ($this->groups as $group) {
+                        assert(isset($cutted[$group]));
 
-                if (!isset($point[$cutted[$group]])) {
-                    $point[$cutted[$group]] = [];
+                        if (!isset($point[$cutted[$group]])) {
+                            $point[$cutted[$group]] = [];
+                        }
+                        $point = & $point[$cutted[$group]];
+                        unset($cutted[$group]);
+                    }
+                    $point[] = $cutted;
                 }
-                $point = & $point[$cutted[$group]];
-                unset($cutted[$group]);
-            }
-            $point[] = $cutted;
+            } catch (\Exception $e) {}
         }
 
         return $result;
