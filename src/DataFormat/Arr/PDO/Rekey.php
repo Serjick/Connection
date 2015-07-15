@@ -3,9 +3,13 @@
 namespace Imhonet\Connection\DataFormat\Arr\PDO;
 
 use Imhonet\Connection\DataFormat\IArr;
+use Imhonet\Connection\DataFormat\IDecorator;
+use Imhonet\Connection\DataFormat\TDecorator;
 
-class Rekey implements IArr
+class Rekey implements IArr, IDecorator
 {
+    use TDecorator;
+
     /**
      * @var \PDOStatement
      */
@@ -27,12 +31,14 @@ class Rekey implements IArr
 
     public function formatData()
     {
-        if ($this->data && $this->cache === null) {
+        $data = $this->getData();
+
+        if ($data && $this->cache === null) {
 
             $result = [];
 
             try {
-                foreach ($this->data as $row) {
+                foreach ($data as $row) {
 
                     $cutted = null;
 
@@ -56,6 +62,10 @@ class Rekey implements IArr
 
                 }
             } catch (\Exception $e) {}
+
+            if ($data instanceof \PDOStatement) {
+                $data->closeCursor();
+            }
 
             $this->cache = $result;
 
@@ -87,6 +97,11 @@ class Rekey implements IArr
         $this->grouping = $grouping;
 
         return $this;
+    }
+
+    protected function getDataRaw()
+    {
+        return $this->data;
     }
 
 }
