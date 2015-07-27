@@ -112,5 +112,4 @@ class Set extends Query
     public function getLastId()
     {
     }
-
 }

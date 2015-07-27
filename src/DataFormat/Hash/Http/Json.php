@@ -51,5 +51,4 @@ class Json implements IHash
     public function formatValue()
     {
     }
-
 }

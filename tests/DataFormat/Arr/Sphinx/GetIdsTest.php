@@ -85,5 +85,4 @@ class GetIdsTest extends \PHPUnit_Framework_TestCase
     {
         $this->formater = null;
     }
-
 }

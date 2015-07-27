@@ -83,5 +83,4 @@ class Get extends Query
     public function getLastId()
     {
     }
-
 }

@@ -36,10 +36,10 @@ class MemcachedTest extends \PHPUnit_Framework_TestCase
             ->setHost(self::HOST)
             ->setPort(self::PORT)
         ;
-        $this->assertEquals(
-            array(array('host' => self::HOST, 'port' => self::PORT)),
-            $this->resource->getHandle()->getServerList()
-        );
+        $actual = $this->resource->getHandle()->getServerList();
+        $this->assertCount(1, $actual);
+        $this->assertEquals(self::HOST, $actual[0]['host']);
+        $this->assertEquals(self::PORT, $actual[0]['port']);
     }
 
     public function testAddServers()
@@ -48,13 +48,12 @@ class MemcachedTest extends \PHPUnit_Framework_TestCase
             ->setHost(self::HOST . Memcached::DELIMITER . self::HOST)
             ->setPort(self::PORT . Memcached::DELIMITER . self::PORT)
         ;
-        $this->assertEquals(
-            array(
-                array('host' => self::HOST, 'port' => self::PORT),
-                array('host' => self::HOST, 'port' => self::PORT),
-            ),
-            $this->resource->getHandle()->getServerList()
-        );
+        $actual = $this->resource->getHandle()->getServerList();
+        $this->assertCount(2, $actual);
+        $this->assertEquals(self::HOST, $actual[0]['host']);
+        $this->assertEquals(self::PORT, $actual[0]['port']);
+        $this->assertEquals(self::HOST, $actual[1]['host']);
+        $this->assertEquals(self::PORT, $actual[1]['port']);
     }
 
     public function testOption()
@@ -67,5 +66,4 @@ class MemcachedTest extends \PHPUnit_Framework_TestCase
     {
         $this->resource = null;
     }
-
 }

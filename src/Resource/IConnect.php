@@ -105,5 +105,4 @@ interface IConnect
      * @return array
      */
     public function getIds();
-
 }

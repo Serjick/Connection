@@ -53,5 +53,4 @@ class GetTest extends \PHPUnit_Framework_TestCase
     {
         $this->formater = null;
     }
-
 }

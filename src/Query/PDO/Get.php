@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query\PDO;
 
-
 class Get extends PDO
 {
     /**
@@ -25,5 +24,4 @@ class Get extends PDO
     public function getLastId()
     {
     }
-
 }

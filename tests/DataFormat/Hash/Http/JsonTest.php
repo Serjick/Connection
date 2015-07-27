@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Test\DataFormat\Hash\Http;
 
-
 use Imhonet\Connection\DataFormat\Hash\Http\Json;
 use Imhonet\Connection\DataFormat\IHash;
 
@@ -62,5 +61,4 @@ class JsonTest extends \PHPUnit_Framework_TestCase
     {
         $this->formater = null;
     }
-
 }

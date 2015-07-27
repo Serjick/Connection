@@ -35,5 +35,4 @@ class Get implements IHash
     public function formatValue()
     {
     }
-
 }

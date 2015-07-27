@@ -23,7 +23,7 @@ class Factory implements IConnect
     /**
      * @return self
      */
-    static public function getInstance()
+    public static function getInstance()
     {
         return self::$instance ? : self::$instance = new static;
     }
@@ -330,5 +330,4 @@ class Factory implements IConnect
     {
         $this->params = array();
     }
-
 }

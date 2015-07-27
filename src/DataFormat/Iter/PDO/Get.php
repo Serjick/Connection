@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat\Iter\PDO;
 
-
 use Imhonet\Connection\DataFormat\IIter;
 
 class Get implements IIter
@@ -27,5 +26,4 @@ class Get implements IIter
     public function formatValue()
     {
     }
-
 }

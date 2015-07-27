@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat\Arr\PDO;
 
-
 use Imhonet\Connection\DataFormat\IArr;
 
 class Get implements IArr
@@ -34,5 +33,4 @@ class Get implements IArr
     public function formatValue()
     {
     }
-
 }

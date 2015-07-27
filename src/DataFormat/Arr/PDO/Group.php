@@ -54,7 +54,8 @@ class Group implements IArr
                     }
                     $point[] = $cutted;
                 }
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
         }
 
         return $result;
@@ -68,4 +69,3 @@ class Group implements IArr
         return null;
     }
 }
-

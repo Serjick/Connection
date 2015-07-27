@@ -5,7 +5,7 @@ namespace Imhonet\Connection\Test\DataFormat\Arr\PDO;
 use Imhonet\Connection\DataFormat\Arr\PDO\Get;
 use Imhonet\Connection\DataFormat\IArr;
 
-class SetTest extends \PHPUnit_Framework_TestCase
+class GetTest extends \PHPUnit_Framework_TestCase
 {
     private $data = array(
         'false' => false,
@@ -70,5 +70,4 @@ class SetTest extends \PHPUnit_Framework_TestCase
     {
         $this->formater = null;
     }
-
 }

@@ -15,5 +15,4 @@ class MySQL extends PDO
 //            \PDO::ATTR_EMULATE_PREPARES => false,
         ) + parent::getAttributes();
     }
-
 }

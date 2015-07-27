@@ -173,5 +173,4 @@ class Sphinx implements IResource
     public function getIds()
     {
     }
-
 }

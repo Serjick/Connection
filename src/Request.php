@@ -118,5 +118,4 @@ class Request
     {
         return $this->format->setData($this->getResponse());
     }
-
 }

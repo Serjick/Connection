@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query\Http;
 
-
 class Get extends Http
 {
     /**
@@ -34,5 +33,4 @@ class Get extends Http
     public function getLastId()
     {
     }
-
 }

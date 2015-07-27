@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query\Http;
 
-
 use Imhonet\Connection\Query\Query;
 
 abstract class Http extends Query
@@ -165,5 +164,4 @@ abstract class Http extends Query
 
         return $result;
     }
-
 }
