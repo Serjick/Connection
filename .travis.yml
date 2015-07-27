@@ -7,7 +7,9 @@ php:
   - 5.4
   - hhvm
 
-before_script: phpenv config-add travis.config.ini
+before_script:
+  - travis_retry composer self-update
+  - phpenv config-add travis.config.ini
 
 install: composer install --dev
 
