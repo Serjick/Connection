@@ -7,6 +7,8 @@ use Imhonet\Connection\Resource\IResource;
 
 class GetTest extends \PHPUnit_Framework_TestCase
 {
+    const IGNORE_VERSION = '2.2.0';
+
     private $data = array(
         'false' => false,
         'true' => true,
@@ -23,6 +25,10 @@ class GetTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
+        if (!$this->checkExtentionVersion()) {
+            $this->markTestSkipped('MMC version with broken reflections detected (@see https://github.com/php-memcached-dev/php-memcached/issues/147)');
+        }
+
         $this->query = new Get();
         $this->query->setKeys(array_keys($this->data));
     }
@@ -102,6 +108,11 @@ class GetTest extends \PHPUnit_Framework_TestCase
         ;
 
         return $resource;
+    }
+
+    private function checkExtentionVersion()
+    {
+        return phpversion('memcached') != self::IGNORE_VERSION;
     }
 
     protected function tearDown()
