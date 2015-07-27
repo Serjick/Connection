@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query\Sphinx;
 
-
 use Imhonet\Connection\Query\Query;
 
 class Get extends Query

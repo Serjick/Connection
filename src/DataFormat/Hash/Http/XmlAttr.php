@@ -71,5 +71,4 @@ class XmlAttr implements IHash
     public function formatValue()
     {
     }
-
 }

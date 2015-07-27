@@ -66,5 +66,4 @@ class MemcachedTest extends \PHPUnit_Framework_TestCase
     {
         $this->resource = null;
     }
-
 }

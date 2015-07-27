@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Test\DataFormat\Hash\Http;
 
-
 use Imhonet\Connection\DataFormat\Hash\Http\XmlAttr;
 use Imhonet\Connection\DataFormat\IHash;
 
@@ -47,5 +46,4 @@ class XmlAttrTest extends \PHPUnit_Framework_TestCase
     {
         $this->formater = null;
     }
-
 }

@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query\PDO;
 
-
 class Set extends PDO
 {
     private $last_id;
@@ -57,5 +56,4 @@ class Set extends PDO
 
         return $this->getResourceLastInsertId();
     }
-
 }

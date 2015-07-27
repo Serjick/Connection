@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat\Arr\Sphinx;
 
-
 use Imhonet\Connection\DataFormat\IArr;
 
 class GetIds implements IArr
@@ -27,5 +26,4 @@ class GetIds implements IArr
     public function formatValue()
     {
     }
-
 }

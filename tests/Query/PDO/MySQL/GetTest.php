@@ -318,5 +318,4 @@ class GetTest extends \PHPUnit_Framework_TestCase
     {
         return sprintf($this->statement, '?', '?');
     }
-
 }

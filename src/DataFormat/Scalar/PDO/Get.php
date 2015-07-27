@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat\Scalar\PDO;
 
-
 use Imhonet\Connection\DataFormat\IScalar;
 
 class Get implements IScalar
@@ -35,5 +34,4 @@ class Get implements IScalar
 
         return $this->result;
     }
-
 }

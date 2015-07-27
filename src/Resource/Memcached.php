@@ -231,5 +231,4 @@ class Memcached implements IResource
     {
         $this->disconnect();
     }
-
 }

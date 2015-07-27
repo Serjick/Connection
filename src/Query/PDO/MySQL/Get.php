@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query\PDO\MySQL;
 
-
 use Imhonet\Connection\Query\PDO;
 
 /**
@@ -254,5 +253,4 @@ class Get extends PDO\Get
     {
         return $this->isLastQueryMain();
     }
-
 }

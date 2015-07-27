@@ -199,5 +199,4 @@ class Memcache implements IResource
     {
         $this->disconnect();
     }
-
 }

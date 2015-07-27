@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query\PDO;
 
-
 use Imhonet\Connection\Query\Query;
 
 abstract class PDO extends Query
@@ -204,5 +203,4 @@ abstract class PDO extends Query
 
         return $result;
     }
-
 }

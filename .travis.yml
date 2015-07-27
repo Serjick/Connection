@@ -1,11 +1,14 @@
 language: php
 
-php:
-  - 7.0
-  - 5.6
-  - 5.5
-  - 5.4
-  - hhvm
+matrix:
+  fast_finish: true
+  include:
+    - php: 5.4
+    - php: 5.5
+    - php: 5.6
+      env: PHPCS=true
+    - php: 7.0
+    - php: hhvm
 
 before_script:
   - travis_retry composer self-update
@@ -13,4 +16,7 @@ before_script:
 
 install: composer install --dev
 
-script: ./vendor/bin/phpunit
+script:
+  - ./vendor/bin/phpunit
+  - if [[ "$PHPCS" == "true" ]]; then ./vendor/bin/php-cs-fixer fix ./src --no-interaction --dry-run --diff; fi
+  - if [[ "$PHPCS" == "true" ]]; then ./vendor/bin/php-cs-fixer fix ./tests --no-interaction --dry-run --diff; fi

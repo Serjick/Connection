@@ -34,12 +34,10 @@ class Rekey implements IArr, IDecorator
         $data = $this->getData();
 
         if ($data && $this->cache === null) {
-
             $result = [];
 
             try {
                 foreach ($data as $row) {
-
                     $cutted = null;
 
                     if (!$this->value_name) {
@@ -55,20 +53,18 @@ class Rekey implements IArr, IDecorator
                             $result[$row[$this->key_name]] =
                                 $this->value_name ? $row[$this->value_name] : $cutted;
                         }
-
                     } else {
                         $result[] = $this->value_name ? $row[$this->value_name] : $cutted;
                     }
-
                 }
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
 
             if ($data instanceof \PDOStatement) {
                 $data->closeCursor();
             }
 
             $this->cache = $result;
-
         }
 
         return $this->cache ? : array();
@@ -103,5 +99,4 @@ class Rekey implements IArr, IDecorator
     {
         return $this->data;
     }
-
 }

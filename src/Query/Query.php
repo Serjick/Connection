@@ -58,5 +58,4 @@ abstract class Query implements IQuery
 
         return $result;
     }
-
 }

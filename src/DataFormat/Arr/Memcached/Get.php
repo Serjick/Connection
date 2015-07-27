@@ -35,5 +35,4 @@ class Get implements IArr
     public function formatValue()
     {
     }
-
 }

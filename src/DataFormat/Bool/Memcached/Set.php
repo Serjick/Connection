@@ -36,5 +36,4 @@ class Set implements IBool
     {
         return $this->data;
     }
-
 }

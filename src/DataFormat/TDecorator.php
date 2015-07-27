@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat;
 
-
 trait TDecorator
 {
     /** @type IDataFormat */
