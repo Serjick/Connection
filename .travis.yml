@@ -9,11 +9,13 @@ matrix:
       env: PHPCS=true
     - php: 7.0
     - php: hhvm
+  allow_failures:
+    - php: 7.0
 
 cache:
-    directories:
-        - "$HOME/.composer/cache"
-        - "$HOME/.php-cs-fixer"
+  directories:
+    - "$HOME/.composer/cache"
+    - "$HOME/.php-cs-fixer"
 
 before_script:
   - mkdir -p "$HOME/.php-cs-fixer"
