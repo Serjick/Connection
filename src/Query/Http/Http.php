@@ -14,7 +14,7 @@ abstract class Http extends Query
     private $params = array();
 
     /**
-     * @var string|null
+     * @var resource|null
      */
     private $response;
     /**
@@ -40,7 +40,7 @@ abstract class Http extends Query
      */
     public function addParams(array $values, $type = self::PARAMS_GET)
     {
-        $url_id = $this->getUrlId();
+        $url_id = $this->getLastQueryId();
 
         if (!isset($this->params[$url_id])) {
             $this->params[$url_id] = array();
@@ -51,13 +51,13 @@ abstract class Http extends Query
         return $this;
     }
 
-    private function getUrlId()
+    final protected function getLastQueryId()
     {
         return $this->url ? count($this->url) - 1 : 0;
     }
 
     /**
-     * @return string|bool
+     * @return resource
      */
     public function execute()
     {
@@ -66,66 +66,82 @@ abstract class Http extends Query
 
     protected function getResponse()
     {
-        if (!$this->hasResponse()) {
-            $response = curl_exec($this->getRequest());
-            $this->success = $response !== false;
-            $this->response = $this->success ? $response : $this->response;
+        if (!$this->isDispatched()) {
+            $handle = curl_multi_init();
+
+            foreach ($this->getRequests() as $id => $request) {
+                curl_multi_add_handle($handle, $request);
+            }
+
+            $result = curl_multi_exec($handle, $running);
+            $this->success = $result === CURLM_OK;
+            $this->response = $this->success ? $handle : $this->response;
         }
 
         return $this->response;
     }
 
-    protected function getRequest()
+    private function getRequests()
     {
-        $handle = $this->getResource();
-        $url = $this->getUrl();
-        $params = $this->getParams();
-        $headers = array();
+        $result = array();
 
-        foreach ($params as $type => $values) {
-            switch ($type) {
-                case self::PARAMS_GET:
-                    $url .= '?' . http_build_query($values);
-                    break;
-                case self::PARAMS_POST_JSON:
-                    $headers[] = 'Content-Type: application/json';
-                    $post = json_encode($values);
-                    break;
-                case self::PARAMS_POST_ARRAY:
-                    $post = $values;
-                    break;
-            }
+        foreach (array_keys($this->url) as $query_id) {
+            $result[] = $this->getRequest($query_id);
         }
 
+        return $result;
+    }
+
+    protected function getRequest($query_id)
+    {
+        $handle = curl_copy_handle($this->getResource());
+        $url = $this->getUrl($query_id);
+
+        if ($params = $this->getParams($query_id, self::PARAMS_GET)) {
+            $url .= '?' . http_build_query($params);
+        }
+
+        if ($params = $this->getParams($query_id, self::PARAMS_POST_ARRAY)) {
+            $post = $params;
+        } elseif ($params = $this->getParams($query_id, self::PARAMS_POST_JSON)) {
+            $post = json_encode($params);
+        }
+
+        curl_setopt($handle, \CURLOPT_PRIVATE, json_encode(['id' => $query_id]));
         curl_setopt($handle, \CURLOPT_URL, $url);
 
-        if (isset($post)) {
+        if (!empty($post)) {
             curl_setopt($handle, \CURLOPT_POST, true);
             curl_setopt($handle, \CURLOPT_POSTFIELDS, $post);
         }
 
-        if ($headers) {
-            curl_setopt($handle, \CURLOPT_HTTPHEADER, $headers);
-        }
+        curl_setopt($handle, \CURLOPT_HTTPHEADER, $this->getHeaders($query_id));
 
         return $handle;
     }
 
-    protected function getUrl()
+    private function getUrl($query_id)
     {
-        $url_id = key($this->url);
-
-        return $this->url[$url_id];
+        return isset($this->url[$query_id]) ? $this->url[$query_id] : null;
     }
 
-    protected function getParams()
+    private function getParams($query_id, $type)
     {
-        $url_id = key($this->url);
-
-        return isset($this->params[$url_id]) ? $this->params[$url_id] : array();
+        return isset($this->params[$query_id][$type]) ? $this->params[$query_id][$type] : array();
     }
 
-    protected function hasResponse()
+    private function getHeaders($query_id)
+    {
+        $result = array();
+
+        if ($this->getParams($query_id, self::PARAMS_POST_JSON) !== null) {
+            $result[] = 'Content-Type: application/json';
+        }
+
+        return $result;
+    }
+
+    protected function isDispatched()
     {
         return $this->success !== null;
     }
@@ -150,13 +166,18 @@ abstract class Http extends Query
     {
         switch ($type) {
             case self::INFO_TYPE_QUERY:
-                $params = array();
+                $result = array();
 
-                foreach ($this->getParams() as $values) {
-                    $params = array_merge($params, $values);
+                foreach (array_keys($this->url) as $query_id) {
+                    $params = array_merge(
+                        $this->getParams($query_id, self::PARAMS_GET),
+                        $this->getParams($query_id, self::PARAMS_POST_ARRAY),
+                        $this->getParams($query_id, self::PARAMS_POST_JSON)
+                    );
+                    $result[] = $this->getUrl($query_id) . '?' . http_build_query($params);
                 }
 
-                $result = $this->getUrl() . '?' . http_build_query($params);
+                $result = implode(PHP_EOL, $result);
                 break;
             default:
                 $result = parent::getDebugInfo($type);

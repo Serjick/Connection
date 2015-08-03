@@ -1,18 +1,24 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Hash\Http;
+namespace Imhonet\Connection\DataFormat\Hash\Http;
 
-use Imhonet\Connection\DataFormat\Hash\Http\XmlAttr;
 use Imhonet\Connection\DataFormat\IHash;
+
+require_once 'functions.php';
 
 class XmlAttrTest extends \PHPUnit_Framework_TestCase
 {
-    private $data = '<response status="200" message="OK" />';
+    private static $data = '<response status="200" message="OK" />';
 
     /**
      * @var IHash
      */
     private $formater;
+
+    public static function setUpBeforeClass()
+    {
+        putenv('TEST_CLASS=' . __CLASS__);
+    }
 
     protected function setUp()
     {
@@ -26,24 +32,33 @@ class XmlAttrTest extends \PHPUnit_Framework_TestCase
 
     public function testData()
     {
-        $this->formater->setData($this->data);
         $this->assertEquals(array('status' => 200, 'message' => 'OK'), $this->formater->formatData());
     }
 
     public function testValue()
     {
-        $this->formater->setData($this->data);
         $this->assertNull($this->formater->formatValue());
     }
 
+    /**
+     * @todo
+     */
     public function testFailure()
     {
-        $this->formater->setData(false);
-        $this->assertEquals(array(), $this->formater->formatData());
+    }
+
+    public static function getData()
+    {
+        return self::$data;
     }
 
     protected function tearDown()
     {
         $this->formater = null;
+    }
+
+    public static function tearDownAfterClass()
+    {
+        putenv('TEST_CLASS');
     }
 }

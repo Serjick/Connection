@@ -1,25 +1,43 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Hash\Http;
+namespace Imhonet\Connection\DataFormat\Hash\Http;
 
-use Imhonet\Connection\DataFormat\Hash\Http\Json;
 use Imhonet\Connection\DataFormat\IHash;
+
+require_once 'functions.php';
 
 class JsonTest extends \PHPUnit_Framework_TestCase
 {
-    private $data = array(
-        'key1' => 'value1',
-        'key2' => 'value2',
-        'key3' => 'value3',
+    const MODE_REGULAR = 1;
+    const MODE_MALFORMED = 2;
+
+    private static $data = array(
+        self::MODE_REGULAR => array(
+            'key1' => 'value1',
+            'key2' => 'value2',
+            'key3' => 'value3',
+        ),
+        self::MODE_MALFORMED => [array(
+            'key1' => 'value1',
+            'key2' => 'value2',
+            'key3' => 'value3',
+        )],
     );
+    private static $mode;
 
     /**
      * @var IHash
      */
     private $formater;
 
+    public static function setUpBeforeClass()
+    {
+        putenv('TEST_CLASS=' . __CLASS__);
+    }
+
     protected function setUp()
     {
+        self::$mode = self::MODE_REGULAR;
         $this->formater = new Json();
     }
 
@@ -30,35 +48,41 @@ class JsonTest extends \PHPUnit_Framework_TestCase
 
     public function testData()
     {
-        $this->formater->setData($this->getData());
-        $this->assertEquals($this->data, $this->formater->formatData());
+        $this->assertEquals(self::$data[self::$mode], $this->formater->formatData());
     }
 
     public function testDataMalformed()
     {
-        $this->formater->setData('[' . $this->getData() . ']');
+        self::$mode = self::MODE_MALFORMED;
         $this->assertEquals(array(), $this->formater->formatData());
     }
 
     public function testValue()
     {
-        $this->formater->setData($this->getData());
         $this->assertNull($this->formater->formatValue());
     }
 
+    /**
+     * @todo
+     */
     public function testFailure()
     {
-        $this->formater->setData(false);
-        $this->assertEquals(array(), $this->formater->formatData());
     }
 
-    protected function getData()
+    public static function getData()
     {
-        return json_encode($this->data);
+        return json_encode(self::$data[self::$mode]);
     }
 
     protected function tearDown()
     {
         $this->formater = null;
+        self::$mode = null;
+    }
+
+    public static function tearDownAfterClass()
+    {
+        putenv('TEST_CLASS');
     }
 }
+

@@ -14,9 +14,9 @@ class Get extends Http
         return parent::addParams($values, self::PARAMS_GET);
     }
 
-    protected function getRequest()
+    protected function getRequest($query_id)
     {
-        $handle = parent::getRequest();
+        $handle = parent::getRequest($query_id);
         curl_setopt($handle, \CURLOPT_HTTPGET, true);
 
         return $handle;

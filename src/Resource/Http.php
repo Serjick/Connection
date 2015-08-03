@@ -31,6 +31,7 @@ class Http implements IResource
     {
         if ($this->resource) {
             curl_close($this->resource);
+            $this->resource = null;
         }
     }
 
