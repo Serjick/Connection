@@ -14,7 +14,11 @@ abstract class Http implements IMulti
      * @see http://php.net/manual/en/function.curl-multi-info-read.php#refsect1-function.curl-multi-info-read-returnvalues
      */
     private $response;
-    private $is_next_exists;
+
+    /**
+     * amount of unhandled responses
+     */
+    private $todo_count;
 
     public function setData($data)
     {
@@ -54,6 +58,10 @@ abstract class Http implements IMulti
                 $this->waitResponse();
                 $this->response = curl_multi_info_read($this->handle);
             }
+
+            if ($this->response) {
+                --$this->todo_count;
+            }
         }
 
         return $this->response;
@@ -75,7 +83,9 @@ abstract class Http implements IMulti
             $count += $still_running;
         }
 
-        $this->is_next_exists = $count > 1;
+        if ($this->todo_count === null) {
+            $this->todo_count = $count;
+        }
     }
 
     private function freeResponse()
@@ -93,6 +103,6 @@ abstract class Http implements IMulti
         $this->freeResponse();
         $this->response = null;
 
-        return $this->is_next_exists !== false;
+        return $this->todo_count > 0;
     }
 }
