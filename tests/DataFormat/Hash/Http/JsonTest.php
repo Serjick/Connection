@@ -2,8 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat\Hash\Http;
 
-use Imhonet\Connection\DataFormat\IHash;
-
 require_once 'functions.php';
 
 class JsonTest extends \PHPUnit_Framework_TestCase
@@ -28,7 +26,7 @@ class JsonTest extends \PHPUnit_Framework_TestCase
     private static $mode;
 
     /**
-     * @var IHash
+     * @var Json
      */
     private $formater;
 
@@ -66,6 +64,15 @@ class JsonTest extends \PHPUnit_Framework_TestCase
         self::$mode = self::MODE_MALFORMED;
         $this->formater->setData(curl_init());
         $this->assertEquals(array(), $this->formater->formatData());
+    }
+
+    public function testIndex()
+    {
+        $id = 123;
+        $resource = curl_init();
+        curl_setopt($resource, \CURLOPT_PRIVATE, json_encode(['id' => $id]));
+        $this->formater->setData($resource);
+        $this->assertEquals($id, $this->formater->getIndex());
     }
 
     public function testValue()

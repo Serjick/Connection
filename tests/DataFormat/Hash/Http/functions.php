@@ -11,9 +11,18 @@ function curl_multi_info_read($mh, &$msgs_in_queue = null)
 
 function curl_getinfo($ch, $opt = null)
 {
-    unset($ch);
+    switch ($opt) {
+        case \CURLINFO_PRIVATE:
+            $result = \curl_getinfo($ch, $opt);
+            break;
+        case null:
+            $result = array();
+            break;
+        default:
+            $result = null;
+    }
 
-    return $opt ? null : array();
+    return $result;
 }
 
 function curl_multi_getcontent($ch)
