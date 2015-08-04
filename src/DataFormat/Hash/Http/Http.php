@@ -2,12 +2,19 @@
 
 namespace Imhonet\Connection\DataFormat\Hash\Http;
 
+use Imhonet\Connection\DataFormat\IMulti;
 
-class Http
+abstract class Http implements IMulti
 {
     /** @type resource */
     private $handle;
-    private $last_response_id;
+
+    /**
+     * @type array
+     * @see http://php.net/manual/en/function.curl-multi-info-read.php#refsect1-function.curl-multi-info-read-returnvalues
+     */
+    private $response;
+    private $is_next_exists;
 
     public function setData($data)
     {
@@ -16,31 +23,76 @@ class Http
         return $this;
     }
 
-    protected function getResponse()
+    public function getIndex()
     {
-        $data = $this->getResponseData();
-        $handle = $data['handle'];
-
-        $this->last_response_id = curl_getinfo($handle, \CURLINFO_PRIVATE);
-        $result = curl_multi_getcontent($handle);
-        curl_multi_remove_handle($this->handle, $handle);
-
-        return $result;
+        return $this->getResponsePrivates()['id'];
     }
 
-    private function getResponseData()
+    protected function getResponse()
     {
-        if (!$result = curl_multi_info_read($this->handle)) {
-            $this->waitResponse();
-            $result = curl_multi_info_read($this->handle);
+        $result = null;
+
+        if ($handle = $this->getResponseHandle()) {
+            $result = curl_multi_getcontent($handle);
         }
 
         return $result;
     }
 
+    /**
+     * @return resource|null
+     */
+    private function getResponseHandle()
+    {
+        return $this->getResponseData()['handle'];
+    }
+
+    private function getResponseData()
+    {
+        if (!$this->response) {
+            if (!$this->response = curl_multi_info_read($this->handle)) {
+                $this->waitResponse();
+                $this->response = curl_multi_info_read($this->handle);
+            }
+        }
+
+        return $this->response;
+    }
+
+    private function getResponsePrivates()
+    {
+        return ($handle = $this->getResponseHandle())
+            ? json_decode(curl_getinfo($handle, \CURLINFO_PRIVATE), true)
+            : null;
+    }
+
     private function waitResponse()
     {
-        curl_multi_select($this->handle, -1);
-        curl_multi_exec($this->handle, $still_running);
+        $count = curl_multi_select($this->handle, -1);
+
+        if ($count > 0) {
+            curl_multi_exec($this->handle, $still_running);
+            $count += $still_running;
+        }
+
+        $this->is_next_exists = $count > 1;
+    }
+
+    private function freeResponse()
+    {
+        if ($this->response) {
+            curl_multi_remove_handle($this->handle, $this->getResponseHandle());
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function moveNext()
+    {
+        $this->freeResponse();
+        $this->response = null;
+
+        return $this->is_next_exists !== false;
     }
 }

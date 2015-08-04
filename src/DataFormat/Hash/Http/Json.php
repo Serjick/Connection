@@ -37,4 +37,14 @@ class Json extends Http implements IHash
     public function formatValue()
     {
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function moveNext()
+    {
+        $this->data = null;
+
+        return parent::moveNext();
+    }
 }
