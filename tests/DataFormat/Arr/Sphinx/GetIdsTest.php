@@ -1,15 +1,14 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Arr\Sphinx;
+namespace Imhonet\Connection\DataFormat\Arr\Sphinx;
 
-use Imhonet\Connection\DataFormat\Arr\Sphinx\GetIds;
 use Imhonet\Connection\DataFormat\IArr;
 
 /**
  * Class GetIdsTest
  * @covers \Imhonet\Connection\DataFormat\Arr\Sphinx\GetIds::
  * @coversDefaultClass \Imhonet\Connection\DataFormat\Arr\Sphinx\GetIds
- * @package Imhonet\Connection\Test\DataFormat
+ * @package Imhonet\Connection\DataFormat
  */
 class GetIdsTest extends \PHPUnit_Framework_TestCase
 {

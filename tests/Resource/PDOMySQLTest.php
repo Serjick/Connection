@@ -1,14 +1,12 @@
 <?php
 
-namespace Imhonet\Connection\Test\Resource;
-
-use Imhonet\Connection\Resource\IResource;
+namespace Imhonet\Connection\Resource;
 
 /**
  * Class PDOMySQLTest
  * @covers Imhonet\Connection\Resource\PDO\MySQL::
  * @coversDefaultClass Imhonet\Connection\Resource\PDO\MySQL
- * @package Imhonet\Connection\Test\Resource
+ * @package Imhonet\Connection\Resource
  */
 class PDOMySQLTest extends \PHPUnit_Framework_TestCase
 {

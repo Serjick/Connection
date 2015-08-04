@@ -1,14 +1,12 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Arr\Sphinx;
-
-use Imhonet\Connection\DataFormat\Arr\Sphinx\Rekey;
+namespace Imhonet\Connection\DataFormat\Arr\Sphinx;
 
 /**
  * Class RekeyTest
  * @covers \Imhonet\Connection\DataFormat\Arr\Sphinx\Rekey::
  * @coversDefaultClass \Imhonet\Connection\DataFormat\Arr\Sphinx\Rekey
- * @package Imhonet\Connection\Test\DataFormat
+ * @package Imhonet\Connection\DataFormat
  */
 class RekeyTest extends \PHPUnit_Framework_TestCase
 {

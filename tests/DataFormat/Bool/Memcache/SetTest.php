@@ -1,8 +1,7 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Bool\Memcache;
+namespace Imhonet\Connection\DataFormat\Bool\Memcache;
 
-use Imhonet\Connection\DataFormat\Bool\Memcache\Set;
 use Imhonet\Connection\DataFormat\IBool;
 
 class SetTest extends \PHPUnit_Framework_TestCase

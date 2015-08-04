@@ -1,8 +1,7 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Arr\Memcached;
+namespace Imhonet\Connection\DataFormat\Arr\Memcached;
 
-use Imhonet\Connection\DataFormat\Arr\Memcached\Get;
 use Imhonet\Connection\DataFormat\IArr;
 
 class GetTest extends \PHPUnit_Framework_TestCase

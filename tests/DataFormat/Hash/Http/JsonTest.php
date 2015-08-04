@@ -48,17 +48,20 @@ class JsonTest extends \PHPUnit_Framework_TestCase
 
     public function testData()
     {
+        $this->formater->setData(curl_init());
         $this->assertEquals(self::$data[self::$mode], $this->formater->formatData());
     }
 
     public function testDataMalformed()
     {
         self::$mode = self::MODE_MALFORMED;
+        $this->formater->setData(curl_init());
         $this->assertEquals(array(), $this->formater->formatData());
     }
 
     public function testValue()
     {
+        $this->formater->setData(curl_init());
         $this->assertNull($this->formater->formatValue());
     }
 

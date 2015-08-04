@@ -1,9 +1,7 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Arr\PDO;
+namespace Imhonet\Connection\DataFormat\Arr\PDO;
 
-use Imhonet\Connection\DataFormat\Arr\PDO\Get;
-use Imhonet\Connection\DataFormat\Arr\PDO\Rekey;
 use Imhonet\Connection\DataFormat\IArr;
 
 class RekeyTest extends \PHPUnit_Framework_TestCase

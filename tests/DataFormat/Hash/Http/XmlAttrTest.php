@@ -32,11 +32,13 @@ class XmlAttrTest extends \PHPUnit_Framework_TestCase
 
     public function testData()
     {
+        $this->formater->setData(curl_init());
         $this->assertEquals(array('status' => 200, 'message' => 'OK'), $this->formater->formatData());
     }
 
     public function testValue()
     {
+        $this->formater->setData(curl_init());
         $this->assertNull($this->formater->formatValue());
     }
 

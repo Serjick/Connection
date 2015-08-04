@@ -1,9 +1,8 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Iter\PDO;
+namespace Imhonet\Connection\DataFormat\Iter\PDO;
 
 use Imhonet\Connection\DataFormat\IIter;
-use Imhonet\Connection\DataFormat\Iter\PDO\Get;
 
 class GetTest extends \PHPUnit_Framework_TestCase
 {

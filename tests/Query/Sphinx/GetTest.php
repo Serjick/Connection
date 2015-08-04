@@ -1,15 +1,14 @@
 <?php
 
-namespace Imhonet\Connection\Test\Query\Sphinx;
+namespace Imhonet\Connection\Query\Sphinx;
 
-use Imhonet\Connection\Query\Sphinx\Get;
 use Imhonet\Connection\Resource\IResource;
 
 /**
  * Class GetTest
  * @covers \Imhonet\Connection\Query\Sphinx\Get::
  * @coversDefaultClass \Imhonet\Connection\Query\Sphinx\Get
- * @package Imhonet\Connection\Test\Query
+ * @package Imhonet\Connection\Query
  */
 class GetTest extends \PHPUnit_Framework_TestCase
 {

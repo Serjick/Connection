@@ -1,9 +1,6 @@
 <?php
 
-namespace Imhonet\Connection\Test\Resource;
-
-use Imhonet\Connection\Resource\IResource;
-use Imhonet\Connection\Resource\Memcache;
+namespace Imhonet\Connection\Resource;
 
 class MemcacheTest extends \PHPUnit_Framework_TestCase
 {
