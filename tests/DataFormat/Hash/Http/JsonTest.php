@@ -9,7 +9,8 @@ require_once 'functions.php';
 class JsonTest extends \PHPUnit_Framework_TestCase
 {
     const MODE_REGULAR = 1;
-    const MODE_MALFORMED = 2;
+    const MODE_FAILURE = 2;
+    const MODE_MALFORMED = 3;
 
     private static $data = array(
         self::MODE_REGULAR => array(
@@ -17,6 +18,7 @@ class JsonTest extends \PHPUnit_Framework_TestCase
             'key2' => 'value2',
             'key3' => 'value3',
         ),
+        self::MODE_FAILURE => '',
         self::MODE_MALFORMED => [array(
             'key1' => 'value1',
             'key2' => 'value2',
@@ -52,6 +54,13 @@ class JsonTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(self::$data[self::$mode], $this->formater->formatData());
     }
 
+    public function testDataFailure()
+    {
+        self::$mode = self::MODE_FAILURE;
+        $this->formater->setData(curl_init());
+        $this->assertEquals(array(), $this->formater->formatData());
+    }
+
     public function testDataMalformed()
     {
         self::$mode = self::MODE_MALFORMED;
@@ -63,13 +72,6 @@ class JsonTest extends \PHPUnit_Framework_TestCase
     {
         $this->formater->setData(curl_init());
         $this->assertNull($this->formater->formatValue());
-    }
-
-    /**
-     * @todo
-     */
-    public function testFailure()
-    {
     }
 
     public static function getData()
