@@ -2,7 +2,7 @@
 
 namespace Imhonet\Connection;
 
-class RequestTest extends \PHPUnit_Framework_TestCase
+class IteratorTest extends \PHPUnit_Framework_TestCase
 {
     private $data = array(
         ['index' => 2, 'data' => ['id' => 10]],

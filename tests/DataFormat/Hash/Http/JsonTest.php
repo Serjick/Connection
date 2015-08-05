@@ -97,4 +97,3 @@ class JsonTest extends \PHPUnit_Framework_TestCase
         putenv('TEST_CLASS');
     }
 }
-
