@@ -23,6 +23,7 @@ class Request implements \Iterator
      * @var IDataFormat|IMulti
      */
     private $format;
+    private $is_format_ready = false;
 
     private $response;
     private $has_response = false;
@@ -122,6 +123,16 @@ class Request implements \Iterator
      * @return IDataFormat|IMulti
      */
     private function getFormater()
+    {
+        if (!$this->is_format_ready) {
+            $this->format = $this->prepareFormat();
+            $this->is_format_ready = true;
+        }
+
+        return $this->format;
+    }
+
+    private function prepareFormat()
     {
         return $this->format->setData($this->getResponse());
     }
