@@ -112,7 +112,7 @@ abstract class Http extends Query
 
         if (!empty($post)) {
             curl_setopt($handle, \CURLOPT_POST, true);
-            curl_setopt($handle, \CURLOPT_POSTFIELDS, $post);
+            curl_setopt($handle, \CURLOPT_POSTFIELDS, http_build_query($post));
         }
 
         curl_setopt($handle, \CURLOPT_HTTPHEADER, $this->getHeaders($query_id));
