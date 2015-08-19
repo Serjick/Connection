@@ -134,7 +134,7 @@ abstract class Http extends Query
     {
         $result = array();
 
-        if ($this->getParams($query_id, self::PARAMS_POST_JSON) !== null) {
+        if ($this->getParams($query_id, self::PARAMS_POST_JSON)) {
             $result[] = 'Content-Type: application/json';
         }
 
