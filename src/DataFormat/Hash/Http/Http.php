@@ -18,7 +18,7 @@ abstract class Http implements IMulti
     /**
      * amount of unhandled responses
      */
-    private $todo_count;
+    private $todo_count = array();
 
     public function setData($data)
     {
@@ -51,16 +51,22 @@ abstract class Http implements IMulti
         return $this->getResponseData()['handle'];
     }
 
+    /**
+     * @return int|null CURLE_*
+     */
+    private function getResponseResultCode()
+    {
+        return $this->getResponseData()['result'];
+    }
+
     private function getResponseData()
     {
         if (!$this->response) {
-            if (!$this->response = curl_multi_info_read($this->handle)) {
+            if (!$this->response = curl_multi_info_read($this->handle, $msgs_in_queue)) {
                 $this->waitResponse();
                 $this->response = curl_multi_info_read($this->handle);
-            }
-
-            if ($this->response) {
-                --$this->todo_count;
+            } else {
+                $this->setQueueSize('curl_multi_info_read', $msgs_in_queue);
             }
         }
 
@@ -80,19 +86,38 @@ abstract class Http implements IMulti
 
         if ($count > 0) {
             curl_multi_exec($this->handle, $still_running);
-            $count += $still_running;
+            $this->setQueueSize('curl_multi_exec', $still_running);
+            --$count;
         }
 
-        if ($this->todo_count === null) {
-            $this->todo_count = $count;
-        }
+        $this->setQueueSize('curl_multi_select', $count == -1 ? 0 : $count);
     }
 
     private function freeResponse()
     {
-        if ($this->response) {
-            curl_multi_remove_handle($this->handle, $this->getResponseHandle());
+        if ($handle = $this->getResponseHandle()) {
+            curl_multi_remove_handle($this->handle, $handle);
         }
+    }
+
+    /**
+     * @param int $count
+     * @return self
+     */
+    private function setQueueSize($queue, $count)
+    {
+        $this->todo_count[$queue] = $count;
+
+        return $this;
+    }
+
+    /**
+     * @todo make it public
+     * @return int
+     */
+    private function getErrorCode()
+    {
+        return (int) ($this->getResponseResultCode() !== \CURLE_OK);
     }
 
     /**
@@ -103,6 +128,6 @@ abstract class Http implements IMulti
         $this->freeResponse();
         $this->response = null;
 
-        return $this->todo_count > 0;
+        return array_sum($this->todo_count) > 0;
     }
 }
