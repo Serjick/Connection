@@ -12,11 +12,12 @@ abstract class Http extends Query
 
     private $url = array();
     private $params = array();
+    private $dispatched = array();
 
     /**
      * @var resource|null
      */
-    private $response;
+    private $handle;
     /**
      * @var bool|null
      */
@@ -66,27 +67,37 @@ abstract class Http extends Query
 
     protected function getResponse()
     {
-        if (!$this->isDispatched()) {
+        if ($this->isDispatched() && $this->handle) {
+            $handle = $this->handle;
+            $requests = $this->getRequests($this->dispatched);
+        } else {
             $handle = curl_multi_init();
+            $requests = $this->getRequests();
+        }
 
-            foreach ($this->getRequests() as $id => $request) {
-                curl_multi_add_handle($handle, $request);
+        if ($requests) {
+            foreach ($requests as $id => $request) {
+                if (curl_multi_add_handle($handle, $request) === CURLM_OK) {
+                    $this->dispatched[$id] = true;
+                }
             }
 
             $result = curl_multi_exec($handle, $running);
             $this->success = $result === CURLM_OK;
-            $this->response = $this->success ? $handle : $this->response;
+            $this->handle = $this->success ? $handle : $this->handle;
         }
 
-        return $this->response;
+        return $this->handle;
     }
 
-    private function getRequests()
+    private function getRequests(array $filter_query_ids = array())
     {
         $result = array();
 
         foreach (array_keys($this->url) as $query_id) {
-            $result[] = $this->getRequest($query_id);
+            if (empty($filter_query_ids[$query_id])) {
+                $result[] = $this->getRequest($query_id);
+            }
         }
 
         return $result;
