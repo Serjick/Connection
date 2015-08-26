@@ -6,6 +6,7 @@ use Imhonet\Connection\DataFormat\IHash;
 
 class Json extends Http implements IHash
 {
+    private $response;
     private $data;
 
     /**
@@ -13,22 +14,21 @@ class Json extends Http implements IHash
      */
     public function formatData()
     {
-        return $this->isValid() ? (array) $this->getResponse() : array();
+        if ($this->data === null) {
+            $this->data = $this->isValid() ? json_decode(parent::getResponse(), true) : array();
+        }
+
+        return $this->data;
     }
 
     private function isValid()
     {
-        return $this->isAssoc();
-    }
-
-    private function isAssoc()
-    {
-        return is_object($this->getResponse());
+        return substr($this->getResponse(), 0, 1) == '{';
     }
 
     protected function getResponse()
     {
-        return $this->data ? : $this->data = json_decode(parent::getResponse());
+        return $this->response ? : $this->response = parent::getResponse();
     }
 
     /**
@@ -43,7 +43,7 @@ class Json extends Http implements IHash
      */
     public function moveNext()
     {
-        $this->data = null;
+        $this->data = $this->response = null;
 
         return parent::moveNext();
     }
