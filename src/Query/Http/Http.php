@@ -12,6 +12,7 @@ abstract class Http extends Query
 
     private $url = array();
     private $params = array();
+    private $headers = array();
     private $dispatched = array();
 
     /**
@@ -48,6 +49,24 @@ abstract class Http extends Query
         }
 
         $this->params[$url_id][$type] = $values;
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @param string $value
+     * @return self
+     */
+    public function addHeader($name, $value)
+    {
+        $url_id = $this->getLastQueryId();
+
+        if (!isset($this->headers[$url_id])) {
+            $this->headers[$url_id] = array();
+        }
+
+        $this->headers[$url_id][] = $name . ': ' . $value;
 
         return $this;
     }
@@ -143,7 +162,7 @@ abstract class Http extends Query
 
     private function getHeaders($query_id)
     {
-        $result = array();
+        $result = isset($this->headers[$query_id]) ? $this->headers[$query_id] : array();
 
         if ($this->getParams($query_id, self::PARAMS_POST_JSON)) {
             $result[] = 'Content-Type: application/json';
