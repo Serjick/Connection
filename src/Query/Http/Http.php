@@ -115,7 +115,7 @@ abstract class Http extends Query
 
         foreach (array_keys($this->url) as $query_id) {
             if (empty($filter_query_ids[$query_id])) {
-                $result[] = $this->getRequest($query_id);
+                $result[$query_id] = $this->getRequest($query_id);
             }
         }
 
