@@ -61,13 +61,12 @@ abstract class Http implements IMulti
 
     private function getResponseData()
     {
-        if (!$this->response) {
-            if (!$this->response = curl_multi_info_read($this->handle, $msgs_in_queue)) {
-                $this->waitResponse();
-                $this->response = curl_multi_info_read($this->handle);
-            } else {
-                $this->setQueueSize('curl_multi_info_read', $msgs_in_queue);
+        if ($this->response === null) {
+            while (false === $this->response = curl_multi_info_read($this->handle, $msgs_in_queue)) {
+                $this->waitTransportActivity();
             }
+
+            $this->setQueueSize('curl_multi_info_read', $msgs_in_queue);
         }
 
         return $this->response;
@@ -80,9 +79,9 @@ abstract class Http implements IMulti
             : null;
     }
 
-    private function waitResponse()
+    private function waitTransportActivity()
     {
-        $count = curl_multi_select($this->handle, -1);
+        $count = curl_multi_select($this->handle);
 
         if ($count > 0) {
             $this->updateExecQueue();
