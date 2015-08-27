@@ -15,7 +15,7 @@ class Json extends Http implements IHash
     public function formatData()
     {
         if ($this->data === null) {
-            $this->data = $this->isValid() ? json_decode(parent::getResponse(), true) : array();
+            $this->data = $this->isValid() ? json_decode($this->getResponse(), true) : array();
         }
 
         return $this->data;
