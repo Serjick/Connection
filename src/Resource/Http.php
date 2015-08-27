@@ -17,6 +17,7 @@ class Http implements IResource
         if (!$this->resource) {
             $this->resource = curl_init();
             curl_setopt_array($this->resource, array(
+                \CURLOPT_ENCODING => "",
                 \CURLOPT_RETURNTRANSFER => true,
             ));
         }
