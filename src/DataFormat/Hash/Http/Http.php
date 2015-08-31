@@ -84,17 +84,18 @@ abstract class Http implements IMulti
         $count = curl_multi_select($this->handle);
 
         if ($count > 0) {
-            $this->updateExecQueue();
+            $this->setQueueSize('curl_multi_exec', $this->getRunningCount());
             --$count;
         }
 
         $this->setQueueSize('curl_multi_select', $count == -1 ? 0 : $count);
     }
 
-    private function updateExecQueue()
+    private function getRunningCount()
     {
         curl_multi_exec($this->handle, $still_running);
-        $this->setQueueSize('curl_multi_exec', $still_running);
+
+        return $still_running;
     }
 
     private function freeResponse()
@@ -132,8 +133,7 @@ abstract class Http implements IMulti
     {
         $this->freeResponse();
         $this->response = null;
-        $this->updateExecQueue();
 
-        return array_sum($this->todo_count) > 0;
+        return array_sum($this->todo_count) > 0 || $this->getRunningCount();
     }
 }
