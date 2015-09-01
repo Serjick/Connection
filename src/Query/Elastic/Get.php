@@ -7,6 +7,9 @@ use Elasticsearch\Client as Elastic;
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
 use Imhonet\Connection\Query\Query;
 
+/**
+ * @todo multi
+ */
 class Get extends Query
 {
     private $index = array();
@@ -14,6 +17,7 @@ class Get extends Query
     private $fields;
 
     /**
+     * @todo immutable
      * @param string $index
      * @return self
      */
@@ -95,7 +99,6 @@ class Get extends Query
      */
     public function getErrorCode()
     {
-        // TODO: Implement getErrorCode() method.
     }
 
     /**
@@ -103,7 +106,7 @@ class Get extends Query
      */
     public function getCountTotal()
     {
-        // TODO: Implement getCountTotal() method.
+        return $this->getCount();
     }
 
     /**
@@ -111,7 +114,7 @@ class Get extends Query
      */
     public function getCount()
     {
-        // TODO: Implement getCount() method.
+        return sizeof($this->ids);
     }
 
     /**
