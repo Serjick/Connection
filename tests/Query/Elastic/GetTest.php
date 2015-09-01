@@ -41,7 +41,7 @@ class GetTest extends \PHPUnit_Framework_TestCase
     public function testFormat()
     {
         $this->query
-            ->addIds(array_keys($this->data))
+            ->setIds(array_keys($this->data))
             ->setResource($this->getResource());
         $result = $this->query->execute();
 
@@ -55,7 +55,7 @@ class GetTest extends \PHPUnit_Framework_TestCase
     public function testFound()
     {
         $this->query
-            ->addIds(array_keys($this->data))
+            ->setIds(array_keys($this->data))
             ->setResource($this->getResource());
 
         foreach ($this->query->execute() as $responses) {
@@ -71,7 +71,7 @@ class GetTest extends \PHPUnit_Framework_TestCase
     public function testData()
     {
         $this->query
-            ->addIds(array_keys($this->data))
+            ->setIds(array_keys($this->data))
             ->setResource($this->getResource());
 
         foreach ($this->query->execute() as $responses) {

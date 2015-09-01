@@ -9,16 +9,28 @@ use Imhonet\Connection\Query\Query;
 
 class Get extends Query
 {
-    private $ids = array();
-    private $fields = array();
+    private $index = array();
+    private $ids;
+    private $fields;
+
+    /**
+     * @param string $index
+     * @return self
+     */
+    public function withIndex($index)
+    {
+        $this->index[] = $index;
+
+        return $this;
+    }
 
     /**
      * @param array $ids
      * @return self
      */
-    public function addIds($ids)
+    public function setIds($ids)
     {
-        $this->ids[] = $ids;
+        $this->ids = $ids;
 
         return $this;
     }
@@ -52,14 +64,14 @@ class Get extends Query
     {
         $result = array();
 
-        foreach ($this->ids as $ids) {
+        foreach ($this->index as $index) {
             $result[] = array(
                 'index' => $this->resource->getDatabase(),
-                'type' => $this->resource->getIndexName(),
+                'type' => $index,
                 'realtime' => true,
                 '_source' => $this->fields ? : true,
                 'body' => array(
-                    'ids' => $ids,
+                    'ids' => $this->ids,
                 ),
                 'client' => array(
                     'future' => 'lazy',

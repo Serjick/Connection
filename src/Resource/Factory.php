@@ -197,8 +197,7 @@ class Factory implements IConnect
         $resource = new Elastic();
         $resource->setHost($this->params['host'])
             ->setPort($this->params['port'])
-            ->setDatabase($this->params['database'])
-            ->setIndexName($this->params['index_name']);
+            ->setDatabase($this->params['database']);
 
         return $resource;
     }

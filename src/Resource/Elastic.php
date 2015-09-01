@@ -14,7 +14,6 @@ class Elastic implements IResource
     private $host;
     private $port;
     private $index;
-    private $type;
 
     /**
      * @inheritdoc
@@ -96,12 +95,11 @@ class Elastic implements IResource
     }
 
     /**
+     * @deprecated
      * @inheritdoc
      */
     public function setIndexName($type)
     {
-        $this->type = $type;
-
         return $this;
     }
 
@@ -172,11 +170,11 @@ class Elastic implements IResource
     }
 
     /**
+     * @deprecated
      * @inheritdoc
      */
     public function getIndexName()
     {
-        return $this->type;
     }
 
     /**
