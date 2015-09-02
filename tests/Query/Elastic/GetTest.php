@@ -2,6 +2,7 @@
 
 namespace Imhonet\Connection\Query\Elastic;
 
+use Elasticsearch\Common\Exceptions\BadRequest400Exception;
 use GuzzleHttp\Ring\Future\CompletedFutureArray;
 use Imhonet\Connection\Resource\IResource;
 
@@ -35,12 +36,14 @@ class GetTest extends \PHPUnit_Framework_TestCase
 
     public function testCreate()
     {
+        $this->assertInstanceOf('\\Imhonet\\Connection\\Query\\IQuery', $this->query);
         $this->assertInstanceOf('\\Imhonet\\Connection\\Query\\Query', $this->query);
     }
 
     public function testFormat()
     {
         $this->query
+            ->withIndex('test')
             ->setIds(array_keys($this->data))
             ->setResource($this->getResource());
         $result = $this->query->execute();
@@ -55,6 +58,7 @@ class GetTest extends \PHPUnit_Framework_TestCase
     public function testFound()
     {
         $this->query
+            ->withIndex('test')
             ->setIds(array_keys($this->data))
             ->setResource($this->getResource());
 
@@ -71,6 +75,7 @@ class GetTest extends \PHPUnit_Framework_TestCase
     public function testData()
     {
         $this->query
+            ->withIndex('test')
             ->setIds(array_keys($this->data))
             ->setResource($this->getResource());
 
@@ -85,14 +90,24 @@ class GetTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testCount()
+    public function testCounts()
     {
-        // @todo
+        $this->query
+            ->withIndex('test')
+            ->setIds(array_keys($this->data));
+
+        $this->assertEquals(sizeof($this->data), $this->query->getCount());
+        $this->assertEquals(sizeof($this->data), $this->query->getCountTotal());
     }
 
     public function testFailure()
     {
-        // @todo
+        $this->query
+            ->withIndex('test')
+            ->setIds(array_keys($this->data))
+            ->setResource($this->getResourceFailed());
+
+        $this->assertEquals(1, $this->query->getErrorCode());
     }
 
     /**
@@ -109,6 +124,27 @@ class GetTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnCallback(function (array $params) {
                 return $this->callMGet($params);
             }));
+
+        $resource = $this->getMock('\\Imhonet\\Connection\\Resource\\Elastic', array('getHandle'));
+        $resource->expects($this->any())
+            ->method('getHandle')
+            ->will($this->returnValue($handle));
+
+        return $resource;
+    }
+
+    /**
+     * @return IResource
+     */
+    private function getResourceFailed()
+    {
+        $handle = $this->getMockBuilder('\\Elasticsearch\\Client')
+            ->setMethods(['mget'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $handle->expects($this->once())
+            ->method('mget')
+            ->will($this->throwException(new BadRequest400Exception));
 
         $resource = $this->getMock('\\Imhonet\\Connection\\Resource\\Elastic', array('getHandle'));
         $resource->expects($this->any())

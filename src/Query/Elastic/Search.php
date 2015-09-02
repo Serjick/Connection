@@ -6,15 +6,18 @@ namespace Imhonet\Connection\Query\Elastic;
 use Elasticsearch\Client as Elastic;
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
 use Imhonet\Connection\Query\Query;
+use Imhonet\Connection\Query\TImmutable;
 
 /**
  * @todo multi
  */
 class Search extends Query
 {
+    use TImmutable;
+
     const LIMIT_MAX = 2147483647;
 
-    private $index = array();
+    private $index;
     private $filter = array();
     private $limit = self::LIMIT_MAX;
     private $offset = 0;
@@ -25,15 +28,15 @@ class Search extends Query
     private $is_dispatched = false;
 
     /**
-     * @todo immutable
      * @param string $index
      * @return self
      */
     public function withIndex($index)
     {
-        $this->index[] = $index;
+        $instance = $this->addChild();
+        $instance->index = $index;
 
-        return $this;
+        return $instance;
     }
 
     /**
@@ -83,48 +86,44 @@ class Search extends Query
     }
 
     /**
-     * @return FutureArrayInterface[]
+     * @return FutureArrayInterface
      */
-    public function getResponses()
+    public function getResponse()
     {
         if (!$this->is_dispatched) {
-            foreach ($this->getRequests() as $request) {
-                $this->response = $this->getResource()->search($request);
+            try {
+                $this->response = $this->getResource()->search($this->getRequest());
+            } catch (\Exception $e) {
+                $this->error = $e;
             }
 
             $this->is_dispatched = true;
         }
 
-        return [$this->response];
+        return $this->response;
     }
 
-    private function getRequests()
+    private function getRequest()
     {
-        $result = array();
-
-        foreach (array_keys($this->index) as $query_id) {
-            $result[] = array(
-                'index' => $this->resource->getDatabase(),
-                '_source' => false,
-                'body' => array(
-                    'query' => array(
-                        'filtered' => array(
-                            'filter' => $this->getFilter(),
-                        ),
+        return array(
+            'index' => $this->resource->getDatabase(),
+            '_source' => false,
+            'body' => array(
+                'query' => array(
+                    'filtered' => array(
+                        'filter' => $this->getFilter(),
                     ),
-                    "from" => $this->offset,
-                    "size" => $this->limit,
-                    "sort" => $this->sort_field
-                        ? [array($this->sort_field => $this->sort_order === SORT_DESC ? 'desc' : 'asc')]
-                        : [],
                 ),
-                'client' => array(
-                    'future' => 'lazy',
-                )
-            );
-        }
-
-        return $result;
+                "from" => $this->offset,
+                "size" => $this->limit,
+                "sort" => $this->sort_field
+                    ? [array($this->sort_field => $this->sort_order === SORT_DESC ? 'desc' : 'asc')]
+                    : [],
+            ),
+            'client' => array(
+                'future' => 'lazy',
+            )
+        );
     }
 
     private function getFilter()
@@ -132,7 +131,7 @@ class Search extends Query
         $filters = array();
 
         foreach ($this->filter as $field => $values) {
-            $field = current($this->index) . '.' . $field;
+            $field = $this->index . '.' . $field;
 
             foreach ($values as $value) {
                 $filters[] = array(
@@ -147,6 +146,7 @@ class Search extends Query
     }
 
     /**
+     * @inheritdoc
      * @return Elastic
      */
     protected function getResource()
@@ -157,34 +157,35 @@ class Search extends Query
     /**
      * @inheritdoc
      */
-    public function getErrorCode()
+    protected function getErrorCodeCurrent()
     {
+        return (int) $this->getResponse() === null || $this->error !== null;
     }
 
     /**
      * @inheritdoc
      */
-    public function getCountTotal()
+    protected function getCountTotalCurrent()
     {
-        $responses = $this->getResponses();
+        $response = $this->getResponse();
 
-        return current($responses) === false ? null : current($responses)['hits']['total'];
+        return $response ? $response['hits']['total'] : null;
     }
 
     /**
      * @inheritdoc
      */
-    public function getCount()
+    protected function getCountCurrent()
     {
-        $responses = $this->getResponses();
+        $response = $this->getResponse();
 
-        return current($responses) === false ? null : sizeof(current($responses)['hits']['hits']);
+        return $response ? sizeof($response['hits']['hits']) : null;
     }
 
     /**
      * @inheritdoc
      */
-    public function getLastId()
+    protected function getLastIdCurrent()
     {
     }
 }

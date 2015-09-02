@@ -6,26 +6,29 @@ namespace Imhonet\Connection\Query\Elastic;
 use Elasticsearch\Client as Elastic;
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
 use Imhonet\Connection\Query\Query;
+use Imhonet\Connection\Query\TImmutable;
 
-/**
- * @todo multi
- */
 class Get extends Query
 {
-    private $index = array();
+    use TImmutable;
+
+    private $index;
     private $ids;
     private $fields;
 
+    private $response;
+    private $is_dispatched = false;
+
     /**
-     * @todo immutable
      * @param string $index
      * @return self
      */
     public function withIndex($index)
     {
-        $this->index[] = $index;
+        $instance = $this->addChild();
+        $instance->index = $index;
 
-        return $this;
+        return $instance;
     }
 
     /**
@@ -55,38 +58,45 @@ class Get extends Query
      */
     public function execute()
     {
-        $result = array();
-
-        foreach ($this->getRequests() as $request) {
-            $result[] = $this->getResource()->mget($request);
-        }
-
-        return $result;
-    }
-
-    private function getRequests()
-    {
-        $result = array();
-
-        foreach ($this->index as $index) {
-            $result[] = array(
-                'index' => $this->resource->getDatabase(),
-                'type' => $index,
-                'realtime' => true,
-                '_source' => $this->fields ? : true,
-                'body' => array(
-                    'ids' => $this->ids,
-                ),
-                'client' => array(
-                    'future' => 'lazy',
-                )
-            );
-        }
-
-        return $result;
+        return $this->getResponses();
     }
 
     /**
+     * @return FutureArrayInterface|null
+     */
+    protected function getResponse()
+    {
+        if (!$this->is_dispatched) {
+            try {
+                $this->response = $this->getResource()->mget($this->getRequest());
+            } catch (\Exception $e) {
+                $this->error = $e;
+            }
+
+            $this->is_dispatched = true;
+        }
+
+        return $this->response;
+    }
+
+    private function getRequest()
+    {
+        return array(
+            'index' => $this->resource->getDatabase(),
+            'type' => $this->index,
+            'realtime' => true,
+            '_source' => $this->fields ? : true,
+            'body' => array(
+                'ids' => $this->ids,
+            ),
+            'client' => array(
+                'future' => 'lazy',
+            )
+        );
+    }
+
+    /**
+     * @inheritdoc
      * @return Elastic
      */
     protected function getResource()
@@ -94,17 +104,15 @@ class Get extends Query
         return parent::getResource();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getErrorCode()
+    protected function getErrorCodeCurrent()
     {
+        return (int) $this->getResponse() === null || $this->error !== null;
     }
 
     /**
      * @inheritdoc
      */
-    public function getCountTotal()
+    protected function getCountTotalCurrent()
     {
         return $this->getCount();
     }
@@ -112,7 +120,7 @@ class Get extends Query
     /**
      * @inheritdoc
      */
-    public function getCount()
+    protected function getCountCurrent()
     {
         return sizeof($this->ids);
     }
@@ -120,7 +128,7 @@ class Get extends Query
     /**
      * @inheritdoc
      */
-    public function getLastId()
+    protected function getLastIdCurrent()
     {
     }
 }
