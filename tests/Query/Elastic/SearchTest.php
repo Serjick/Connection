@@ -6,32 +6,16 @@ use Elasticsearch\Common\Exceptions\BadRequest400Exception;
 use GuzzleHttp\Ring\Future\CompletedFutureArray;
 use Imhonet\Connection\Resource\IResource;
 
-class GetTest extends \PHPUnit_Framework_TestCase
+class SearchTest extends \PHPUnit_Framework_TestCase
 {
-    private $data = [
-        8471 => array(
-            'blog_id' => 8471,
-            'title' => 'title1',
-            'text' => 'text1',
-            'user_id' => 777,
-        ),
-        -1 => null,
-        2155 => array(
-            'blog_id' => 2155,
-            'title' => 'title2',
-            'text' => 'text2',
-            'user_id' => 128,
-        ),
-    ];
-
     /**
-     * @var Get
+     * @var Search
      */
     private $query;
 
     protected function setUp()
     {
-        $this->query = new Get();
+        $this->query = new Search();
     }
 
     public function testCreate()
@@ -44,7 +28,6 @@ class GetTest extends \PHPUnit_Framework_TestCase
     {
         $this->query
             ->withIndex('test')
-            ->setIds(array_keys($this->data))
             ->setResource($this->getResource());
         $result = $this->query->execute();
 
@@ -55,36 +38,20 @@ class GetTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testFound()
-    {
-        $this->query
-            ->withIndex('test')
-            ->setIds(array_keys($this->data))
-            ->setResource($this->getResource());
-
-        foreach ($this->query->execute() as $responses) {
-            foreach ($responses as $response) {
-                foreach ($response as $row) {
-                    $id = $row['_id'];
-                    $this->assertEquals(isset($this->data[$id]), $row['found']);
-                }
-            }
-        }
-    }
-
     public function testData()
     {
         $this->query
             ->withIndex('test')
-            ->setIds(array_keys($this->data))
             ->setResource($this->getResource());
 
         foreach ($this->query->execute() as $responses) {
-            foreach ($responses['docs'] as $row) {
-                $id = $row['_id'];
-                $data = isset($row['_source']) ? $row['_source'] : null;
-                $this->assertEquals($this->data[$id], $data);
+            $result = array();
+
+            foreach ($responses['hits']['hits'] as $row) {
+                $result[] = $row['_id'];
             }
+
+            $this->assertEquals([123, 321], $result);
         }
     }
 
@@ -92,17 +59,16 @@ class GetTest extends \PHPUnit_Framework_TestCase
     {
         $this->query
             ->withIndex('test')
-            ->setIds(array_keys($this->data));
+            ->setResource($this->getResource());
 
-        $this->assertEquals(sizeof($this->data), $this->query->getCount());
-        $this->assertEquals(sizeof($this->data), $this->query->getCountTotal());
+        $this->assertEquals(2, $this->query->getCount());
+        $this->assertEquals(3, $this->query->getCountTotal());
     }
 
     public function testFailure()
     {
         $this->query
             ->withIndex('test')
-            ->setIds(array_keys($this->data))
             ->setResource($this->getResourceFailed());
 
         $this->assertEquals(1, $this->query->getErrorCode());
@@ -114,14 +80,12 @@ class GetTest extends \PHPUnit_Framework_TestCase
     private function getResource()
     {
         $handle = $this->getMockBuilder('\\Elasticsearch\\Client')
-            ->setMethods(['mget'])
+            ->setMethods(['search'])
             ->disableOriginalConstructor()
             ->getMock();
         $handle->expects($this->once())
-            ->method('mget')
-            ->will($this->returnCallback(function (array $params) {
-                return $this->callMGet($params);
-            }));
+            ->method('search')
+            ->will($this->returnValue($this->getResponse()));
 
         $resource = $this->getMock('\\Imhonet\\Connection\\Resource\\Elastic', array('getHandle'));
         $resource->expects($this->any())
@@ -137,11 +101,11 @@ class GetTest extends \PHPUnit_Framework_TestCase
     private function getResourceFailed()
     {
         $handle = $this->getMockBuilder('\\Elasticsearch\\Client')
-            ->setMethods(['mget'])
+            ->setMethods(['search'])
             ->disableOriginalConstructor()
             ->getMock();
         $handle->expects($this->once())
-            ->method('mget')
+            ->method('search')
             ->will($this->throwException(new BadRequest400Exception));
 
         $resource = $this->getMock('\\Imhonet\\Connection\\Resource\\Elastic', array('getHandle'));
@@ -152,28 +116,21 @@ class GetTest extends \PHPUnit_Framework_TestCase
         return $resource;
     }
 
-    private function callMGet(array $params)
+    private function getResponse()
     {
-        $result = array();
+        $result = array(
+            'total' => 3,
+            'hits' => array(
+                array(
+                    '_id' => 123,
+                ),
+                array(
+                    '_id' => 321,
+                ),
+            )
+        );
 
-        foreach ($params['body']['ids'] as $id) {
-            $found = isset($this->data[$id]);
-
-            $response = array(
-                '_id' => $id,
-                'found' => $found,
-            );
-
-            if ($found) {
-                $response['_source'] = is_array($params['_source'])
-                    ? array_intersect_key(array_flip($params['_source']), $this->data[$id])
-                    : $this->data[$id];
-            }
-
-            $result[] = $response;
-        }
-
-        return new CompletedFutureArray(array('docs' => $result));
+        return new CompletedFutureArray(array('hits' => $result));
     }
 
     protected function tearDown()
