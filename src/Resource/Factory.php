@@ -15,6 +15,7 @@ class Factory implements IConnect
     const TYPE_MEMCACHE = 'memcache';
     const TYPE_MEMCACHED = 'memcached';
     const TYPE_SPHINX = 'sphinx';
+    const TYPE_ELASTIC = 'elastic';
 
     private static $instance;
     private $resources = array();
@@ -178,9 +179,25 @@ class Factory implements IConnect
             case self::TYPE_SPHINX:
                 $resource = $this->getSphinx();
                 break;
+            case self::TYPE_ELASTIC:
+                $resource = $this->getElastic();
+                break;
             default:
                 throw new \InvalidArgumentException();
         }
+
+        return $resource;
+    }
+
+    /**
+     * @return Elastic
+     */
+    private function getElastic()
+    {
+        $resource = new Elastic();
+        $resource->setHost($this->params['host'])
+            ->setPort($this->params['port'])
+            ->setDatabase($this->params['database']);
 
         return $resource;
     }

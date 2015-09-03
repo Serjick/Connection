@@ -30,6 +30,7 @@
 
     "require": {
         "php": ">=5.4",
+        "elasticsearch/elasticsearch": "~2.0",
         "respect/validation": "@stable",
         "ramsey/array_column": "~1.1"
     },
