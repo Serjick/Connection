@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat\Arr\Elastic;
 
-
 use GuzzleHttp\Ring\Future\CompletedFutureArray;
 
 class GetTest extends \PHPUnit_Framework_TestCase

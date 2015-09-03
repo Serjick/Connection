@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query\Elastic;
 
-
 use Elasticsearch\Client as Elastic;
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
 use Imhonet\Connection\Query\Query;

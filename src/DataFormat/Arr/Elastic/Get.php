@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat\Arr\Elastic;
 
-
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
 use Imhonet\Connection\DataFormat\IArr;
 
@@ -30,7 +29,7 @@ class Get implements IArr
 
     private function isValid()
     {
-        return is_array($this->data) && array_reduce($this->data, function($carry, $item) {
+        return is_array($this->data) && array_reduce($this->data, function ($carry, $item) {
             return $carry && $item instanceof FutureArrayInterface;
         }, true);
     }

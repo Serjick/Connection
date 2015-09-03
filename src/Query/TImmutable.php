@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Query;
 
-
 /**
  * @todo iterable parent
  */

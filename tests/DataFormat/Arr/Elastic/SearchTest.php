@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\DataFormat\Arr\Elastic;
 
-
 use GuzzleHttp\Ring\Future\CompletedFutureArray;
 
 class SearchTest extends \PHPUnit_Framework_TestCase
