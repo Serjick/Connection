@@ -6,6 +6,9 @@ namespace Imhonet\Connection\DataFormat\Arr\Elastic;
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
 use Imhonet\Connection\DataFormat\IArr;
 
+/**
+ * @todo handle multi queries
+ */
 class Get implements IArr
 {
     /**
