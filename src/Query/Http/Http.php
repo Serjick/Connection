@@ -195,7 +195,7 @@ abstract class Http extends Query
         return (int) $this->isError();
     }
 
-    public function getDebugInfo($type = self::INFO_TYPE_QUERY)
+    protected function getDebugInfoCurrent($type = self::INFO_TYPE_QUERY)
     {
         switch ($type) {
             case self::INFO_TYPE_QUERY:

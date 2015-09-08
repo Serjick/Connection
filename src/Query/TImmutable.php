@@ -2,18 +2,15 @@
 
 namespace Imhonet\Connection\Query;
 
-/**
- * @todo iterable parent
- */
 trait TImmutable
 {
     private $query_id = 0;
     /**
-     * @type Query|self
+     * @type IQuery|self
      */
     private $parent;
     /**
-     * @type Query[]|self[]
+     * @type IQuery[]|self[]
      */
     private $childs = array();
 
@@ -61,32 +58,89 @@ trait TImmutable
         return $result;
     }
 
+    /**
+     * Seeks to a position
+     * @link http://php.net/manual/en/seekableiterator.seek.php
+     * @param int $position <p>
+     * The position to seek to.
+     * </p>
+     * @return void
+     * @throw \OutOfBoundsException
+     * @since 5.1.0
+     */
+    public function seek($position)
+    {
+        if (isset($this->getParent()->childs[$position])) {
+            $this->getParent()->query_id = $position;
+        } else {
+            throw new \OutOfBoundsException();
+        }
+    }
+
+    /**
+     * @throw \OutOfBoundsException
+     */
+    private function getQueryCurrent()
+    {
+        $query_id = $this->getParent()->query_id;
+        $this->seek($query_id);
+
+        return $this->getParent()->childs[$query_id];
+    }
+
     public function getErrorCode()
     {
-        $query = $this->parent->childs[$this->query_id];
+        try {
+            $result = $this->getQueryCurrent()->getErrorCodeCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = null;
+        }
 
-        return $query ? $query->getErrorCodeCurrent() : null;
+        return $result;
     }
 
     public function getCount()
     {
-        $query = $this->parent->childs[$this->query_id];
+        try {
+            $result = $this->getQueryCurrent()->getCountCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = null;
+        }
 
-        return $query ? $query->getCountCurrent() : null;
+        return $result;
     }
 
     public function getCountTotal()
     {
-        $query = $this->parent->childs[$this->query_id];
+        try {
+            $result = $this->getQueryCurrent()->getCountTotalCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = null;
+        }
 
-        return $query ? $query->getCountTotalCurrent() : null;
+        return $result;
     }
 
     public function getLastId()
     {
-        $query = $this->parent->childs[$this->query_id];
+        try {
+            $result = $this->getQueryCurrent()->getLastIdCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = null;
+        }
 
-        return $query ? $query->getLastIdCurrent() : null;
+        return $result;
+    }
+
+    public function getDebugInfo($type = IQuery::INFO_TYPE_QUERY)
+    {
+        try {
+            $result = $this->getQueryCurrent()->getDebugInfoCurrent($type);
+        } catch (\OutOfBoundsException $e) {
+            $result = null;
+        }
+
+        return $result;
     }
 
     abstract protected function getResponse();
@@ -98,4 +152,6 @@ trait TImmutable
     abstract protected function getCountTotalCurrent();
     /** @see IQuery::getLastId */
     abstract protected function getLastIdCurrent();
+    /** @see IQuery::getDebugInfo */
+    abstract protected function getDebugInfoCurrent($type = IQuery::INFO_TYPE_QUERY);
 }
