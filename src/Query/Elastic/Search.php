@@ -187,4 +187,17 @@ class Search extends Query
     protected function getLastIdCurrent()
     {
     }
+
+    public function getDebugInfo($type = self::INFO_TYPE_QUERY)
+    {
+        switch ($type) {
+            case self::INFO_TYPE_BLOCKING:
+                $result = self::BLOCKING_FREE;
+                break;
+            default:
+                $result = parent::getDebugInfo($type);
+        }
+
+        return $result;
+    }
 }

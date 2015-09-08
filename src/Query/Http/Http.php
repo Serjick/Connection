@@ -205,6 +205,9 @@ abstract class Http extends Query
                     $this->getParams(self::PARAMS_POST_JSON)
                 ));
                 break;
+            case self::INFO_TYPE_BLOCKING:
+                $result = self::BLOCKING_FREE;
+                break;
             default:
                 $result = parent::getDebugInfo($type);
         }

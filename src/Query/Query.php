@@ -54,6 +54,9 @@ abstract class Query implements IQuery
             case self::INFO_TYPE_ERROR:
                 $result = $this->error ? $this->error->getMessage() : $result;
                 break;
+            case self::INFO_TYPE_BLOCKING:
+                $result = self::BLOCKING_WAIT;
+                break;
         }
 
         return $result;
