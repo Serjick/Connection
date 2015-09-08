@@ -18,7 +18,7 @@ trait TImmutable
     private $childs = array();
 
     /**
-     * @return $this
+     * @return self|$this
      */
     private function addChild()
     {
@@ -32,6 +32,9 @@ trait TImmutable
         return $child;
     }
 
+    /**
+     * @return self|$this
+     */
     private function &getParent()
     {
         if (!$this->parent) {
@@ -42,14 +45,17 @@ trait TImmutable
     }
 
     /**
+     * @param callable $filter e.g. function(self $child): bool {}
      * @return array
      */
-    private function getResponses()
+    private function getResponses(Callable $filter = null)
     {
         $result = array();
 
         foreach ($this->getParent()->childs as $child) {
-            $result[] = $child->getResponse();
+            if ($filter === null || $filter($child)) {
+                $result[] = $child->getResponse();
+            }
         }
 
         return $result;

@@ -4,15 +4,15 @@ namespace Imhonet\Connection\Query\Http;
 
 class Mixed extends Http
 {
-    public function getCountTotal()
+    public function getCountTotalCurrent()
     {
     }
 
-    public function getCount()
+    public function getCountCurrent()
     {
     }
 
-    public function getLastId()
+    public function getLastIdCurrent()
     {
     }
 }

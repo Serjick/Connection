@@ -14,23 +14,23 @@ class Get extends Http
         return parent::addParams($values, self::PARAMS_GET);
     }
 
-    protected function getRequest($query_id)
+    protected function getRequest()
     {
-        $handle = parent::getRequest($query_id);
+        $handle = parent::getRequest();
         curl_setopt($handle, \CURLOPT_HTTPGET, true);
 
         return $handle;
     }
 
-    public function getCountTotal()
+    public function getCountTotalCurrent()
     {
     }
 
-    public function getCount()
+    public function getCountCurrent()
     {
     }
 
-    public function getLastId()
+    public function getLastIdCurrent()
     {
     }
 }
