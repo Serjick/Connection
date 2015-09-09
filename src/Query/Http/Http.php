@@ -199,11 +199,11 @@ abstract class Http extends Query
     {
         switch ($type) {
             case self::INFO_TYPE_QUERY:
-                $result = $this->url . '?' . http_build_query(array_merge(
+                $result = $this->url . '?' . urldecode(http_build_query(array_merge(
                     $this->getParams(self::PARAMS_GET),
                     $this->getParams(self::PARAMS_POST_ARRAY),
                     $this->getParams(self::PARAMS_POST_JSON)
-                ));
+                )));
                 break;
             case self::INFO_TYPE_BLOCKING:
                 $result = self::BLOCKING_FREE;
