@@ -50,12 +50,21 @@ class Request implements \Iterator
         return $this;
     }
 
+    public function repeat()
+    {
+        assert($this->hasResponse() === true);
+        $this->getResponse(false);
+
+        return $this;
+    }
+
     /**
+     * @param bool $cached
      * @return mixed
      */
-    private function getResponse()
+    private function getResponse($cached = true)
     {
-        if (!$this->hasResponse()) {
+        if (!$cached || !$this->hasResponse()) {
             $this->response = $this->query->execute();
             $this->has_response = true;
         }
