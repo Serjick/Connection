@@ -34,9 +34,13 @@ abstract class Http extends Query
     {
         $instance = $this->addChild();
         $instance->url = $url;
-        $instance->success = null;
 
         return $instance;
+    }
+
+    public function __clone()
+    {
+        $this->success = null;
     }
 
     /**
