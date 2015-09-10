@@ -85,7 +85,10 @@ class Request implements \Iterator
      */
     public function getData()
     {
-        return $this->getFormater()->formatData();
+        $result = $this->getFormater()->formatData();
+        $this->query->seek($this->key());
+
+        return $result;
     }
 
     /**
@@ -93,7 +96,10 @@ class Request implements \Iterator
      */
     public function getValue()
     {
-        return $this->getFormater()->formatValue();
+        $result = $this->getFormater()->formatValue();
+        $this->query->seek($this->key());
+
+        return $result;
     }
 
     /**
