@@ -212,10 +212,14 @@ abstract class Http extends Query
             case self::INFO_TYPE_BLOCKING:
                 $result = self::BLOCKING_FREE;
                 break;
+            case self::INFO_TYPE_DURATION:
+                $info = curl_getinfo($this->getResponse());
+                $result = $info['http_code'] ? $info['total_time'] : null;
+                break;
             default:
                 $result = parent::getDebugInfo($type);
         }
 
-        return $result;
+        return (string) $result;
     }
 }
