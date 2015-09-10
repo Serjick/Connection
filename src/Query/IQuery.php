@@ -4,7 +4,7 @@ namespace Imhonet\Connection\Query;
 
 use Imhonet\Connection\Resource\IResource;
 
-interface IQuery
+interface IQuery extends \SeekableIterator
 {
     const STATUS_OK = 0;
     const STATUS_ERROR = 1;
