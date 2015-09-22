@@ -86,42 +86,6 @@ class Elastic implements IResource
     }
 
     /**
-     * @deprecated
-     * @inheritdoc
-     */
-    public function setTable($table)
-    {
-        return $this;
-    }
-
-    /**
-     * @deprecated
-     * @inheritdoc
-     */
-    public function setIndexName($type)
-    {
-        return $this;
-    }
-
-    /**
-     * @deprecated
-     * @inheritdoc
-     */
-    public function setIndexFields(array $fields)
-    {
-        return $this;
-    }
-
-    /**
-     * @deprecated
-     * @inheritdoc
-     */
-    public function setIds($ids)
-    {
-        return $this;
-    }
-
-    /**
      * @inheritdoc
      */
     public function getHost()
@@ -159,38 +123,5 @@ class Elastic implements IResource
     public function getDatabase()
     {
         return $this->index;
-    }
-
-    /**
-     * @deprecated
-     * @inheritdoc
-     */
-    public function getTable()
-    {
-    }
-
-    /**
-     * @deprecated
-     * @inheritdoc
-     */
-    public function getIndexName()
-    {
-    }
-
-    /**
-     * @deprecated
-     * @inheritdoc
-     */
-    public function getIndexFields()
-    {
-        //
-    }
-
-    /**
-     * @deprecated
-     * @inheritdoc
-     */
-    public function getIds()
-    {
     }
 }

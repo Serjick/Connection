@@ -85,50 +85,6 @@ class Factory implements IConnect
     }
 
     /**
-     * @inheritdoc
-     * @return self
-     */
-    public function setTable($table)
-    {
-        $this->params['table'] = $table;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     * @return self
-     */
-    public function setIndexName($name)
-    {
-        $this->params['index_name'] = $name;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     * @return self
-     */
-    public function setIndexFields(array $fields)
-    {
-        $this->params['index_fields'] = $fields;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     * @return self
-     */
-    public function setIds($ids)
-    {
-        $this->params['ids'] = $ids;
-
-        return $this;
-    }
-
-    /**
      * @param string $type self::TYPE_MYSQL|self::TYPE_HANDLERSOCKET|...
      * @param array $params
      * @return string
@@ -306,38 +262,6 @@ class Factory implements IConnect
     public function getDatabase()
     {
         return $this->params['database'];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getTable()
-    {
-        return $this->params['table'];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIndexName()
-    {
-        return $this->params['index_name'];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIndexFields()
-    {
-        return $this->params['index_fields'];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIds()
-    {
-        return $this->params['ids'];
     }
 
     /**

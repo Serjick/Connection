@@ -93,34 +93,6 @@ class Couchbase implements IResource
     /**
      * @inheritdoc
      */
-    public function setTable($table)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setIndexName($name)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setIndexFields(array $fields)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setIds($ids)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getHost()
     {
         return $this->host;
@@ -156,34 +128,5 @@ class Couchbase implements IResource
     public function getDatabase()
     {
         return $this->bucket;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getTable()
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIndexName()
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIndexFields()
-    {
-        //
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIds()
-    {
     }
 }

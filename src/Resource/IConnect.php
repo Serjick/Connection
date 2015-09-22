@@ -8,58 +8,34 @@ namespace Imhonet\Connection\Resource;
 interface IConnect
 {
     /**
-     * @param  $host
+     * @param string $host
      * @return self
      */
     public function setHost($host);
 
     /**
-     * @param  $port
+     * @param string|int $port
      * @return self
      */
     public function setPort($port);
 
     /**
-     * @param  $user
+     * @param string $user
      * @return self
      */
     public function setUser($user);
 
     /**
-     * @param  $password
+     * @param string $password
      * @return self
      */
     public function setPassword($password);
 
     /**
-     * @param  $database
+     * @param string $database
      * @return self
      */
     public function setDatabase($database);
-
-    /**
-     * @param  $table
-     * @return self
-     */
-    public function setTable($table);
-
-    /**
-     * @param  $name
-     * @return self
-     */
-    public function setIndexName($name);
-
-    /**
-     * @param  array $fields
-     * @return self
-     */
-    public function setIndexFields(array $fields);
-
-    /**
-     * @param  array $ids
-     * @return self
-     */
-    public function setIds($ids);
 
     /**
      * @return string
@@ -67,7 +43,7 @@ interface IConnect
     public function getHost();
 
     /**
-     * @return string
+     * @return string|int
      */
     public function getPort();
 
@@ -85,24 +61,4 @@ interface IConnect
      * @return string
      */
     public function getDatabase();
-
-    /**
-     * @return string
-     */
-    public function getTable();
-
-    /**
-     * @return string
-     */
-    public function getIndexName();
-
-    /**
-     * @return array
-     */
-    public function getIndexFields();
-
-    /**
-     * @return array
-     */
-    public function getIds();
 }
