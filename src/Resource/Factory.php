@@ -138,6 +138,9 @@ class Factory implements IConnect
             case self::TYPE_ELASTIC:
                 $resource = $this->getElastic();
                 break;
+            case self::TYPE_HANDLERSOCKET:
+                $resource = $this->getHandlerSocket();
+                break;
             default:
                 throw new \InvalidArgumentException();
         }
@@ -220,6 +223,18 @@ class Factory implements IConnect
         $resource = new Memcache();
         $resource->setHost($this->params['host'])
             ->setPort($this->params['port']);
+
+        return $resource;
+    }
+
+    /**
+     * @return HandlerSocket
+     */
+    private function getHandlerSocket()
+    {
+        $resource = new HandlerSocket();
+        $resource->setHost($this->params['host'])
+            ->setDatabase($this->params['database']);
 
         return $resource;
     }
