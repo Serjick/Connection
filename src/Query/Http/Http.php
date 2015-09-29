@@ -22,6 +22,7 @@ abstract class Http extends Query
     private $params = array();
     private $params_mode = array();
     private $headers = array();
+    private $cookies = array();
 
     /**
      * @var resource|null
@@ -86,6 +87,18 @@ abstract class Http extends Query
         if (strtolower($name) == 'content-type') {
             $this->params_mode[self::PARAMS_BODY] = strpos($value, 'application/json') === 0 ? self::PARAMS_JSON : null;
         }
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @param string $value
+     * @return self
+     */
+    public function addCookie($name, $value)
+    {
+        $this->cookies[$name] = $name . '=' . $value;
 
         return $this;
     }
@@ -188,6 +201,10 @@ abstract class Http extends Query
 
         if ($this->isParamsJson()) {
             $result[] = 'Content-Type: application/json';
+        }
+
+        if ($this->cookies) {
+            $result[] = 'Cookie: ' . implode('; ', $this->cookies);
         }
 
         return $result;
