@@ -74,34 +74,6 @@ class Http implements IResource
     /**
      * @inheritdoc
      */
-    public function setTable($table)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setIndexName($name)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setIndexFields(array $fields)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setIds($ids)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getHost()
     {
     }
@@ -131,35 +103,6 @@ class Http implements IResource
      * @inheritdoc
      */
     public function getDatabase()
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getTable()
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIndexName()
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIndexFields()
-    {
-        //
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIds()
     {
     }
 }

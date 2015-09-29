@@ -2,18 +2,17 @@
 
 namespace Imhonet\Connection\Resource;
 
-class Couchbase implements IResource
+use HSPHP\ReadSocket;
+
+class HandlerSocket implements IResource
 {
     /**
-     * @var \Couchbase
+     * @var ReadSocket
      */
     private $resource;
 
     private $host;
-    private $port;
-    private $user;
-    private $password;
-    private $bucket;
+    private $db;
 
     /**
      * @inheritdoc
@@ -21,12 +20,8 @@ class Couchbase implements IResource
     public function getHandle()
     {
         if (!$this->resource) {
-            $this->resource = new \Couchbase(
-                $this->host . ':' . $this->port,
-                $this->user,
-                $this->password,
-                $this->bucket
-            );
+            $this->resource = new ReadSocket();
+            $this->resource->connect($this->host);
         }
 
         return $this->resource;
@@ -37,7 +32,10 @@ class Couchbase implements IResource
      */
     public function disconnect()
     {
-        $this->resource = null;
+        if ($this->resource) {
+            $this->resource->disconnect();
+            $this->resource = null;
+        }
     }
 
     /**
@@ -51,32 +49,29 @@ class Couchbase implements IResource
     }
 
     /**
+     * @deprecated
      * @inheritdoc
      */
     public function setPort($port)
     {
-        $this->port = $port;
-
         return $this;
     }
 
     /**
+     * @deprecated
      * @inheritdoc
      */
     public function setUser($user)
     {
-        $this->user = $user;
-
         return $this;
     }
 
     /**
+     * @deprecated
      * @inheritdoc
      */
     public function setPassword($password)
     {
-        $this->password = $password;
-
         return $this;
     }
 
@@ -85,7 +80,7 @@ class Couchbase implements IResource
      */
     public function setDatabase($database)
     {
-        $this->bucket = $database;
+        $this->db = $database;
 
         return $this;
     }
@@ -99,27 +94,27 @@ class Couchbase implements IResource
     }
 
     /**
+     * @deprecated
      * @inheritdoc
      */
     public function getPort()
     {
-        return $this->port;
     }
 
     /**
+     * @deprecated
      * @inheritdoc
      */
     public function getUser()
     {
-        return $this->user;
     }
 
     /**
+     * @deprecated
      * @inheritdoc
      */
     public function getPassword()
     {
-        return $this->password;
     }
 
     /**
@@ -127,6 +122,6 @@ class Couchbase implements IResource
      */
     public function getDatabase()
     {
-        return $this->bucket;
+        return $this->db;
     }
 }
