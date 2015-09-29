@@ -8,8 +8,7 @@
 
     "autoload": {
         "psr-4" : {
-            "Imhonet\\Connection\\" : "src/",
-            "Imhonet\\Connection\\Test\\" : "tests/"
+            "Imhonet\\Connection\\" : "src/"
         }
     },
 

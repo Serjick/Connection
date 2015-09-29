@@ -9,25 +9,11 @@ use Imhonet\Connection\DataFormat\IHash;
  * @todo support not only root node
  * @package Imhonet\Connection\DataFormat\Hash\Http
  */
-class XmlAttr implements IHash
+class XmlAttr extends Http implements IHash
 {
-    /**
-     * @var string|bool
-     */
     private $data;
-    private $data_decoded;
 
     private $result;
-
-    /**
-     * @inheritdoc
-     */
-    public function setData($data)
-    {
-        $this->data = $data;
-
-        return $this;
-    }
 
     /**
      * @inheritdoc
@@ -43,22 +29,22 @@ class XmlAttr implements IHash
 
     private function isValid()
     {
-        return is_string($this->data) && $this->getDecoded() !== false;
+        return $this->getResponse() !== false;
     }
 
     /**
      * @return \SimpleXMLElement|bool
      */
-    private function getDecoded()
+    protected function getResponse()
     {
-        return $this->data_decoded ? : $this->data_decoded = simplexml_load_string($this->data);
+        return $this->data ? : $this->data = simplexml_load_string(parent::getResponse());
     }
 
     private function getAttributes()
     {
         $result = array();
 
-        foreach ($this->getDecoded()->attributes() as $name => $value) {
+        foreach ($this->getResponse()->attributes() as $name => $value) {
             $result[$name] = (string) $value;
         }
 
@@ -70,5 +56,15 @@ class XmlAttr implements IHash
      */
     public function formatValue()
     {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function moveNext()
+    {
+        $this->data = null;
+
+        return parent::moveNext();
     }
 }

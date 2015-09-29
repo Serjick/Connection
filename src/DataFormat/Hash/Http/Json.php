@@ -4,45 +4,39 @@ namespace Imhonet\Connection\DataFormat\Hash\Http;
 
 use Imhonet\Connection\DataFormat\IHash;
 
-class Json implements IHash
+class Json extends Http implements IHash
 {
-    /**
-     * @var string|bool
-     */
+    private $response;
     private $data;
-    private $data_decoded;
-
-    /**
-     * @inheritdoc
-     */
-    public function setData($data)
-    {
-        $this->data = $data;
-
-        return $this;
-    }
 
     /**
      * @inheritdoc
      */
     public function formatData()
     {
-        return $this->isValid() ? (array) $this->getDecoded() : array();
+        if ($this->data === null) {
+            $valid = $this->isValid();
+            assert($valid, $this->getResponse());
+
+            if ($valid) {
+                $this->data = json_decode($this->getResponse(), true);
+                assert(json_last_error() === \JSON_ERROR_NONE, 'json_last_error=' . json_last_error());
+            } else {
+                $this->data = array();
+            }
+        }
+
+        return $this->data;
     }
 
     private function isValid()
     {
-        return is_string($this->data) && $this->isAssoc();
+        return substr($this->getResponse(), 0, 1) == '{';
     }
 
-    private function isAssoc()
+    protected function getResponse()
     {
-        return is_object($this->getDecoded());
-    }
-
-    private function getDecoded()
-    {
-        return $this->data_decoded ? : $this->data_decoded = json_decode($this->data);
+        return $this->response ? : $this->response = parent::getResponse();
     }
 
     /**
@@ -50,5 +44,15 @@ class Json implements IHash
      */
     public function formatValue()
     {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function moveNext()
+    {
+        $this->data = $this->response = null;
+
+        return parent::moveNext();
     }
 }

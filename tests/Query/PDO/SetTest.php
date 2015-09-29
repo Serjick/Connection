@@ -1,8 +1,7 @@
 <?php
 
-namespace Imhonet\Connection\Test\Query\PDO;
+namespace Imhonet\Connection\Query\PDO;
 
-use Imhonet\Connection\Query\PDO\Set;
 use Imhonet\Connection\Resource\IResource;
 
 class SetTest extends \PHPUnit_Framework_TestCase

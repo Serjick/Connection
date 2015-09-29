@@ -13,5 +13,8 @@
         <testsuite name="DataFormats">
             <directory>./tests/DataFormat/</directory>
         </testsuite>
+        <testsuite name="Request">
+            <directory>./tests/Request/</directory>
+        </testsuite>
     </testsuites>
 </phpunit>

@@ -1,14 +1,12 @@
 <?php
 
-namespace Imhonet\Connection\Test\Resource;
-
-use Imhonet\Connection\Resource\Sphinx;
+namespace Imhonet\Connection\Resource;
 
 /**
  * Class SphinxTest
  * @covers Imhonet\Connection\Resource\Sphinx::
  * @coversDefaultClass Imhonet\Connection\Resource\Sphinx
- * @package Imhonet\Connection\Test\Resource
+ * @package Imhonet\Connection\Resource
  */
 class SphinxTest extends \PHPUnit_Framework_TestCase
 {

@@ -2,22 +2,12 @@
 
 namespace Imhonet\Connection\Query\Http;
 
-class Get extends Http
+class Post extends Http
 {
-    /**
-     * @inheritdoc
-     */
-    public function addParams(array $values, $type = self::PARAMS_GET)
-    {
-        assert($type === self::PARAMS_GET);
-
-        return parent::addParams($values, self::PARAMS_GET);
-    }
-
     protected function getRequest()
     {
         $handle = parent::getRequest();
-        curl_setopt($handle, \CURLOPT_HTTPGET, true);
+        curl_setopt($handle, \CURLOPT_CUSTOMREQUEST, 'POST');
 
         return $handle;
     }

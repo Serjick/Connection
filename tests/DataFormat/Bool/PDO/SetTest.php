@@ -1,8 +1,7 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Bool\PDO;
+namespace Imhonet\Connection\DataFormat\Bool\PDO;
 
-use Imhonet\Connection\DataFormat\Bool\PDO\Set;
 use Imhonet\Connection\DataFormat\IBool;
 
 class SetTest extends \PHPUnit_Framework_TestCase

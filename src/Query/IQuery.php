@@ -4,7 +4,7 @@ namespace Imhonet\Connection\Query;
 
 use Imhonet\Connection\Resource\IResource;
 
-interface IQuery
+interface IQuery extends \SeekableIterator
 {
     const STATUS_OK = 0;
     const STATUS_ERROR = 1;
@@ -19,6 +19,13 @@ interface IQuery
 
     const INFO_TYPE_QUERY = 1;
     const INFO_TYPE_ERROR = 2;
+    const INFO_TYPE_BLOCKING = 3;
+    /** query duration in seconds */
+    const INFO_TYPE_DURATION = 4;
+    const INFO_TYPE_PROFILING_KEY = 5;
+
+    const BLOCKING_WAIT = 'blocking';
+    const BLOCKING_FREE = 'non-blocking';
 
     /**
      * @param IResource $resource

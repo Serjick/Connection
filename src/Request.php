@@ -3,10 +3,11 @@
 namespace Imhonet\Connection;
 
 use Imhonet\Connection\DataFormat\IDataFormat;
+use Imhonet\Connection\DataFormat\IMulti;
 use Imhonet\Connection\Query\IQuery;
 use Imhonet\Connection\Resource\IResource;
 
-class Request
+class Request implements \Iterator
 {
     /**
      * @var IQuery
@@ -19,15 +20,19 @@ class Request
     protected $resource;
 
     /**
-     * @var IDataFormat
+     * @var IDataFormat|IMulti
      */
     private $format;
+    private $is_format_ready = false;
 
-    private $response = NAN;
+    private $response;
+    private $has_response = false;
+
+    private $is_valid_iteration = true;
 
     /**
      * @param IQuery $query
-     * @param IDataFormat $format
+     * @param IDataFormat|IMulti $format
      */
     public function __construct(IQuery $query, IDataFormat $format)
     {
@@ -45,14 +50,26 @@ class Request
         return $this;
     }
 
+    public function repeat()
+    {
+        assert($this->hasResponse() === true);
+        $this->getResponse(false);
+
+        return $this;
+    }
+
     /**
+     * @param bool $cached
      * @return mixed
      */
-    private function getResponse()
+    private function getResponse($cached = true)
     {
-        return !$this->hasResponse()
-            ? $this->response = $this->query->execute()
-            : $this->response;
+        if (!$cached || !$this->hasResponse()) {
+            $this->response = $this->query->execute();
+            $this->has_response = true;
+        }
+
+        return $this->response;
     }
 
     /**
@@ -60,7 +77,7 @@ class Request
      */
     private function hasResponse()
     {
-        return !is_float($this->response) || !is_nan($this->response);
+        return $this->has_response;
     }
 
     /**
@@ -68,7 +85,10 @@ class Request
      */
     public function getData()
     {
-        return $this->getFormater()->formatData();
+        $result = $this->getFormater()->formatData();
+        $this->query->seek($this->key());
+
+        return $result;
     }
 
     /**
@@ -76,7 +96,10 @@ class Request
      */
     public function getValue()
     {
-        return $this->getFormater()->formatValue();
+        $result = $this->getFormater()->formatValue();
+        $this->query->seek($this->key());
+
+        return $result;
     }
 
     /**
@@ -112,10 +135,65 @@ class Request
     }
 
     /**
-     * @return IDataFormat
+     * @return IDataFormat|IMulti
      */
     private function getFormater()
     {
+        if (!$this->is_format_ready) {
+            $this->format = $this->prepareFormat();
+            $this->is_format_ready = true;
+        }
+
+        return $this->format;
+    }
+
+    private function prepareFormat()
+    {
         return $this->format->setData($this->getResponse());
+    }
+
+    private function isFormaterIterable()
+    {
+        return $this->format instanceof IMulti;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function current()
+    {
+        return $this->getData();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function next()
+    {
+        $this->is_valid_iteration = $this->isFormaterIterable() ? $this->getFormater()->moveNext() : false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function key()
+    {
+        return $this->isFormaterIterable() ? $this->getFormater()->getIndex() : 0;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function valid()
+    {
+        return $this->is_valid_iteration;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rewind()
+    {
+        assert($this->is_valid_iteration, 'Repeated iterations not supported');
     }
 }

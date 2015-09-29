@@ -1,8 +1,7 @@
 <?php
 
-namespace Imhonet\Connection\Test\Query\Memcache;
+namespace Imhonet\Connection\Query\Memcache;
 
-use Imhonet\Connection\Query\Memcache\Set;
 use Imhonet\Connection\Resource\IResource;
 
 class SetTest extends \PHPUnit_Framework_TestCase

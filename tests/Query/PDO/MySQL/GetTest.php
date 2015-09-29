@@ -1,8 +1,6 @@
 <?php
 
-namespace Imhonet\Connection\Test\Query\PDO\MySQL;
-
-use Imhonet\Connection\Query\PDO\MySQL\Get;
+namespace Imhonet\Connection\Query\PDO\MySQL;
 
 class GetTest extends \PHPUnit_Framework_TestCase
 {

@@ -1,9 +1,8 @@
 <?php
 
-namespace Imhonet\Connection\Test\DataFormat\Scalar\PDO;
+namespace Imhonet\Connection\DataFormat\Scalar\PDO;
 
 use Imhonet\Connection\DataFormat\IScalar;
-use Imhonet\Connection\DataFormat\Scalar\PDO\Get;
 
 class GetTest extends \PHPUnit_Framework_TestCase
 {
