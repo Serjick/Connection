@@ -68,6 +68,11 @@ class IteratorTest extends \PHPUnit_Framework_TestCase
             ;
             $format
                 ->expects($this->at(++$call))
+                ->method('getIndex')
+                ->will($this->returnValue($data['index']))
+            ;
+            $format
+                ->expects($this->at(++$call))
                 ->method('moveNext')
                 ->will($this->returnValue($i < count($this->data)-1))
             ;
@@ -81,7 +86,13 @@ class IteratorTest extends \PHPUnit_Framework_TestCase
      */
     private function getFormatMock()
     {
-        $format = $this->getMock('\\Imhonet\\Connection\\DataFormat\\IMulti', array('setData', 'getIndex', 'moveNext', 'formatData', 'formatValue'));
+        $format = $this->getMock('\\Imhonet\\Connection\\DataFormat\\IMulti', array(
+            'setData',
+            'getIndex',
+            'moveNext',
+            'formatData',
+            'formatValue',
+        ));
 
         return $format;
     }
@@ -91,7 +102,21 @@ class IteratorTest extends \PHPUnit_Framework_TestCase
      */
     private function getQueryMock()
     {
-        $query = $this->getMock('\\Imhonet\\Connection\\Query\\IQuery', array('setResource', 'execute', 'getErrorCode', 'getCountTotal', 'getCount', 'getLastId', 'getDebugInfo'));
+        $query = $this->getMock('\\Imhonet\\Connection\\Query\\IQuery', array(
+            'setResource',
+            'execute',
+            'getErrorCode',
+            'getCountTotal',
+            'getCount',
+            'getLastId',
+            'getDebugInfo',
+            'seek',
+            'current',
+            'next',
+            'key',
+            'valid',
+            'rewind',
+        ));
 
         return $query;
     }
