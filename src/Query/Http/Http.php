@@ -10,11 +10,17 @@ abstract class Http extends Query
     use TImmutable;
 
     const PARAMS_GET = 1;
-    const PARAMS_POST_ARRAY = 2;
-    const PARAMS_POST_JSON = 3;
+    const PARAMS_BODY = 2;
+    const PARAMS_JSON = 4;
+
+    /** @deprecated */
+    const PARAMS_POST_ARRAY = self::PARAMS_BODY;
+    /** @deprecated */
+    const PARAMS_POST_JSON = 6; // self::PARAMS_BODY | self::PARAMS_JSON
 
     private $url;
     private $params = array();
+    private $params_mode = array();
     private $headers = array();
 
     /**
@@ -61,7 +67,9 @@ abstract class Http extends Query
      */
     public function addParams(array $values, $type = self::PARAMS_GET)
     {
+        $type = $type & self::PARAMS_BODY ? self::PARAMS_BODY : self::PARAMS_GET;
         $this->params[$type] = $values;
+        $this->params_mode[$type] = $this->isParamsJson() || $type & self::PARAMS_JSON ? self::PARAMS_JSON : null;
 
         return $this;
     }
@@ -74,6 +82,10 @@ abstract class Http extends Query
     public function addHeader($name, $value)
     {
         $this->headers[] = $name . ': ' . $value;
+
+        if (strtolower($name) == 'content-type') {
+            $this->params_mode[self::PARAMS_BODY] = strpos($value, 'application/json') === 0 ? self::PARAMS_JSON : null;
+        }
 
         return $this;
     }
@@ -138,10 +150,8 @@ abstract class Http extends Query
             $url .= '?' . http_build_query($params);
         }
 
-        if ($params = $this->getParams(self::PARAMS_POST_ARRAY)) {
-            $post = http_build_query($params);
-        } elseif ($params = $this->getParams(self::PARAMS_POST_JSON)) {
-            $post = json_encode($params);
+        if ($params = $this->getParams(self::PARAMS_BODY)) {
+            $post = $this->isParamsJson() ? json_encode($params) : http_build_query($params);
         }
 
         curl_setopt($handle, \CURLOPT_PRIVATE, json_encode(['id' => $this->query_id]));
@@ -167,11 +177,16 @@ abstract class Http extends Query
         return isset($this->params[$type]) ? $this->params[$type] : array();
     }
 
+    private function isParamsJson()
+    {
+        return isset($this->params_mode[self::PARAMS_BODY]) && $this->params_mode[self::PARAMS_BODY] == self::PARAMS_JSON;
+    }
+
     private function getHeaders()
     {
         $result = $this->headers;
 
-        if ($this->getParams(self::PARAMS_POST_JSON)) {
+        if ($this->isParamsJson()) {
             $result[] = 'Content-Type: application/json';
         }
 
@@ -205,8 +220,7 @@ abstract class Http extends Query
             case self::INFO_TYPE_QUERY:
                 $result = $this->url . '?' . urldecode(http_build_query(array_merge(
                     $this->getParams(self::PARAMS_GET),
-                    $this->getParams(self::PARAMS_POST_ARRAY),
-                    $this->getParams(self::PARAMS_POST_JSON)
+                    $this->getParams(self::PARAMS_BODY)
                 )));
                 break;
             case self::INFO_TYPE_BLOCKING:
