@@ -45,7 +45,7 @@ trait TImmutable
      * @param callable $filter e.g. function(self $child): bool {}
      * @return array
      */
-    private function getResponses(Callable $filter = null)
+    private function getResponses(callable $filter = null)
     {
         $result = array();
 

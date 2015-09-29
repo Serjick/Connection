@@ -90,7 +90,7 @@ abstract class Http extends Query
     {
         $this->success = $this->success === null ? true : $this->success;
         $multi_handle = $this->getRequestMulti();
-        $handles = $this->getResponses(function(self $query) {
+        $handles = $this->getResponses(function (self $query) {
             return !$query->hasResponse();
         });
 
