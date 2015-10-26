@@ -196,4 +196,15 @@ class Request implements \Iterator
     {
         assert($this->is_valid_iteration, 'Repeated iterations not supported');
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function __debugInfo()
+    {
+        return array(
+            'query' => $this->query->getDebugInfo(),
+            'error' => $this->query->getDebugInfo(IQuery::INFO_TYPE_ERROR),
+        );
+    }
 }
