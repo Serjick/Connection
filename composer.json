@@ -44,5 +44,13 @@
         "fabpot/php-cs-fixer": "~2.0@dev",
         "couchbase/php-ext-couchbase": "dev-master",
         "neutron/sphinxsearch-api": "0.9.9"
+    },
+
+    "scripts": {
+        "tests": [
+            "phpunit",
+            "php-cs-fixer fix ./src --no-interaction --dry-run",
+            "php-cs-fixer fix ./tests --no-interaction --dry-run"
+        ]
     }
 }
