@@ -19,6 +19,7 @@ abstract class Http extends Query
     const PARAMS_POST_JSON = 6; // self::PARAMS_BODY | self::PARAMS_JSON
 
     private $url;
+    private $ip;
     private $params = array();
     private $params_mode = array();
     private $headers = array();
@@ -104,6 +105,17 @@ abstract class Http extends Query
     }
 
     /**
+     * @param string $ip
+     * @return self
+     */
+    public function setDNSResolve($ip)
+    {
+        $this->ip = $ip;
+
+        return $this;
+    }
+
+    /**
      * @return resource cURL multi handle
      */
     public function execute()
@@ -170,6 +182,10 @@ abstract class Http extends Query
         curl_setopt($handle, \CURLOPT_PRIVATE, json_encode(['id' => $this->query_id]));
         curl_setopt($handle, \CURLOPT_URL, $url);
 
+        if ($this->ip) {
+            curl_setopt($handle, \CURLOPT_RESOLVE, [$this->getHostWithPort() . ':' . $this->ip]);
+        }
+
         if (!empty($post)) {
             curl_setopt($handle, \CURLOPT_POST, true);
             curl_setopt($handle, \CURLOPT_POSTFIELDS, $post);
@@ -178,6 +194,13 @@ abstract class Http extends Query
         curl_setopt($handle, \CURLOPT_HTTPHEADER, $this->getHeaders());
 
         return $handle;
+    }
+
+    private function getHostWithPort()
+    {
+        $url = parse_url($this->url);
+
+        return $url['host'] . ':' . (empty($url['port']) ? 80 : $url['port']);
     }
 
     private function getRequestMulti()
