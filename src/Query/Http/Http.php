@@ -48,6 +48,8 @@ abstract class Http extends Query
 
     public function __clone()
     {
+        parent::__clone();
+
         $this->success = null;
     }
 
@@ -168,7 +170,7 @@ abstract class Http extends Query
 
     protected function getRequest()
     {
-        $handle = curl_copy_handle($this->getResource());
+        $handle = $this->getResource();
         $url = $this->url;
 
         if ($params = $this->getParams(self::PARAMS_GET)) {

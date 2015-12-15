@@ -37,6 +37,14 @@ class Http implements IResource
     }
 
     /**
+     * @inheritDoc
+     */
+    public function __clone()
+    {
+        $this->resource = null;
+    }
+
+    /**
      * @inheritdoc
      */
     public function setHost($host)

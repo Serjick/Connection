@@ -46,6 +46,14 @@ abstract class Query implements IQuery
     /**
      * @inheritDoc
      */
+    public function __clone()
+    {
+        $this->resource = clone $this->resource;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function seek($position)
     {
         if ($position > 0) {
