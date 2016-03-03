@@ -3,8 +3,9 @@
 namespace Imhonet\Connection\DataFormat\Hash\Http;
 
 use Imhonet\Connection\DataFormat\IMulti;
+use Imhonet\Connection\IErrorable;
 
-abstract class Http implements IMulti
+abstract class Http implements IMulti, IErrorable
 {
     /** @type resource */
     private $handle;
@@ -117,13 +118,11 @@ abstract class Http implements IMulti
         return $this;
     }
 
-    /**
-     * @todo make it public
-     * @return int
-     */
-    private function getErrorCode()
+    public function getErrorCode()
     {
-        return (int) ($this->getResponseResultCode() !== \CURLE_OK);
+        return (int) ($this->getResponseResultCode() !== \CURLE_OK
+            || curl_getinfo($this->getResponseHandle(), CURLINFO_HTTP_CODE) >= 400
+        );
     }
 
     /**

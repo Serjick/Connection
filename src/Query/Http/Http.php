@@ -265,6 +265,10 @@ abstract class Http extends Query
                     $this->getParams(self::PARAMS_BODY)
                 )));
                 break;
+            case self::INFO_TYPE_ERROR:
+                $http_code = curl_getinfo($this->getResponse(), CURLINFO_HTTP_CODE);
+                $result = $http_code >= 400 ? $http_code : curl_error($this->getResponse());
+                break;
             case self::INFO_TYPE_BLOCKING:
                 $result = self::BLOCKING_FREE;
                 break;
