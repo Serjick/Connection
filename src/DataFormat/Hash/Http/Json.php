@@ -46,6 +46,11 @@ class Json extends Http implements IHash
     {
     }
 
+    public function getErrorCode()
+    {
+        return parent::getErrorCode() || !$this->isValid();
+    }
+
     /**
      * @inheritDoc
      */
