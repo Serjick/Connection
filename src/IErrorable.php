@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection;
 
-
 interface IErrorable
 {
     /**
