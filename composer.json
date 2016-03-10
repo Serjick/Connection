@@ -12,6 +12,10 @@
         }
     },
 
+    "config": {
+        "secure-http": false
+    },
+
     "repositories": [
         {
             "type": "package",
