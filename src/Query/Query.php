@@ -48,7 +48,9 @@ abstract class Query implements IQuery
      */
     public function __clone()
     {
-        $this->resource = clone $this->resource;
+        if ($this->resource) {
+            $this->resource = clone $this->resource;
+        }
     }
 
     /**
