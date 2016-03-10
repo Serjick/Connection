@@ -3,8 +3,9 @@
 namespace Imhonet\Connection\DataFormat\Hash\Http;
 
 use Imhonet\Connection\DataFormat\IMulti;
+use Imhonet\Connection\IErrorable;
 
-abstract class Http implements IMulti
+abstract class Http implements IMulti, IErrorable
 {
     /** @type resource */
     private $handle;
@@ -18,7 +19,11 @@ abstract class Http implements IMulti
     /**
      * amount of unhandled responses
      */
-    private $todo_count = array();
+    private $todo_count = array(
+        'curl_multi_select' => null,
+        'curl_multi_info_read' => null,
+        'curl_multi_exec' => null,
+    );
 
     public function setData($data)
     {
@@ -67,6 +72,7 @@ abstract class Http implements IMulti
             }
 
             $this->setQueueSize('curl_multi_info_read', $msgs_in_queue);
+            $this->setQueueSize('curl_multi_select', $this->todo_count['curl_multi_select'] - 1);
         }
 
         return $this->response;
@@ -84,14 +90,14 @@ abstract class Http implements IMulti
         $count = curl_multi_select($this->handle);
 
         if ($count > 0) {
-            $this->setQueueSize('curl_multi_exec', $this->getRunningCount());
+            $this->setQueueSize('curl_multi_exec', $this->getCountRunning());
             --$count;
         }
 
-        $this->setQueueSize('curl_multi_select', $count == -1 ? 0 : $count);
+        $this->setQueueSize('curl_multi_select', $count);
     }
 
-    private function getRunningCount()
+    private function getCountRunning()
     {
         curl_multi_exec($this->handle, $still_running);
 
@@ -112,18 +118,16 @@ abstract class Http implements IMulti
      */
     private function setQueueSize($queue, $count)
     {
-        $this->todo_count[$queue] = $count;
+        $this->todo_count[$queue] = $count > 0 ? $count : 0;
 
         return $this;
     }
 
-    /**
-     * @todo make it public
-     * @return int
-     */
-    private function getErrorCode()
+    public function getErrorCode()
     {
-        return (int) ($this->getResponseResultCode() !== \CURLE_OK);
+        return (int) ($this->getResponseResultCode() !== \CURLE_OK
+            || curl_getinfo($this->getResponseHandle(), CURLINFO_HTTP_CODE) >= 400
+        );
     }
 
     /**
@@ -134,6 +138,6 @@ abstract class Http implements IMulti
         $this->freeResponse();
         $this->response = null;
 
-        return array_sum($this->todo_count) > 0 || $this->getRunningCount();
+        return array_sum($this->todo_count) > 0 || $this->getCountRunning();
     }
 }

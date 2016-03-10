@@ -10,12 +10,20 @@ abstract class Http extends Query
     use TImmutable;
 
     const PARAMS_GET = 1;
-    const PARAMS_POST_ARRAY = 2;
-    const PARAMS_POST_JSON = 3;
+    const PARAMS_BODY = 2;
+    const PARAMS_JSON = 4;
+
+    /** @deprecated */
+    const PARAMS_POST_ARRAY = self::PARAMS_BODY;
+    /** @deprecated */
+    const PARAMS_POST_JSON = 6; // self::PARAMS_BODY | self::PARAMS_JSON
 
     private $url;
+    private $ip;
     private $params = array();
+    private $params_mode = array();
     private $headers = array();
+    private $cookies = array();
 
     /**
      * @var resource|null
@@ -40,6 +48,8 @@ abstract class Http extends Query
 
     public function __clone()
     {
+        parent::__clone();
+
         $this->success = null;
     }
 
@@ -61,7 +71,9 @@ abstract class Http extends Query
      */
     public function addParams(array $values, $type = self::PARAMS_GET)
     {
+        $type = $type & self::PARAMS_BODY ? self::PARAMS_BODY : self::PARAMS_GET;
         $this->params[$type] = $values;
+        $this->params_mode[$type] = $this->isParamsJson() || $type & self::PARAMS_JSON ? self::PARAMS_JSON : null;
 
         return $this;
     }
@@ -74,6 +86,33 @@ abstract class Http extends Query
     public function addHeader($name, $value)
     {
         $this->headers[] = $name . ': ' . $value;
+
+        if (strtolower($name) == 'content-type') {
+            $this->params_mode[self::PARAMS_BODY] = strpos($value, 'application/json') === 0 ? self::PARAMS_JSON : null;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @param string $value
+     * @return self
+     */
+    public function addCookie($name, $value)
+    {
+        $this->cookies[$name] = $name . '=' . $value;
+
+        return $this;
+    }
+
+    /**
+     * @param string $ip
+     * @return self
+     */
+    public function setDNSResolve($ip)
+    {
+        $this->ip = $ip;
 
         return $this;
     }
@@ -131,21 +170,23 @@ abstract class Http extends Query
 
     protected function getRequest()
     {
-        $handle = curl_copy_handle($this->getResource());
+        $handle = $this->getResource();
         $url = $this->url;
 
         if ($params = $this->getParams(self::PARAMS_GET)) {
             $url .= '?' . http_build_query($params);
         }
 
-        if ($params = $this->getParams(self::PARAMS_POST_ARRAY)) {
-            $post = http_build_query($params);
-        } elseif ($params = $this->getParams(self::PARAMS_POST_JSON)) {
-            $post = json_encode($params);
+        if ($params = $this->getParams(self::PARAMS_BODY)) {
+            $post = $this->isParamsJson() ? json_encode($params) : http_build_query($params);
         }
 
         curl_setopt($handle, \CURLOPT_PRIVATE, json_encode(['id' => $this->query_id]));
         curl_setopt($handle, \CURLOPT_URL, $url);
+
+        if ($this->ip) {
+            curl_setopt($handle, \CURLOPT_RESOLVE, [$this->getHostWithPort() . ':' . $this->ip]);
+        }
 
         if (!empty($post)) {
             curl_setopt($handle, \CURLOPT_POST, true);
@@ -155,6 +196,13 @@ abstract class Http extends Query
         curl_setopt($handle, \CURLOPT_HTTPHEADER, $this->getHeaders());
 
         return $handle;
+    }
+
+    private function getHostWithPort()
+    {
+        $url = parse_url($this->url);
+
+        return $url['host'] . ':' . (empty($url['port']) ? 80 : $url['port']);
     }
 
     private function getRequestMulti()
@@ -167,12 +215,21 @@ abstract class Http extends Query
         return isset($this->params[$type]) ? $this->params[$type] : array();
     }
 
+    private function isParamsJson()
+    {
+        return isset($this->params_mode[self::PARAMS_BODY]) && $this->params_mode[self::PARAMS_BODY] == self::PARAMS_JSON;
+    }
+
     private function getHeaders()
     {
         $result = $this->headers;
 
-        if ($this->getParams(self::PARAMS_POST_JSON)) {
+        if ($this->isParamsJson()) {
             $result[] = 'Content-Type: application/json';
+        }
+
+        if ($this->cookies) {
+            $result[] = 'Cookie: ' . implode('; ', $this->cookies);
         }
 
         return $result;
@@ -205,9 +262,12 @@ abstract class Http extends Query
             case self::INFO_TYPE_QUERY:
                 $result = $this->url . '?' . urldecode(http_build_query(array_merge(
                     $this->getParams(self::PARAMS_GET),
-                    $this->getParams(self::PARAMS_POST_ARRAY),
-                    $this->getParams(self::PARAMS_POST_JSON)
+                    $this->getParams(self::PARAMS_BODY)
                 )));
+                break;
+            case self::INFO_TYPE_ERROR:
+                $http_code = curl_getinfo($this->getResponse(), CURLINFO_HTTP_CODE);
+                $result = $http_code >= 400 ? $http_code : curl_error($this->getResponse());
                 break;
             case self::INFO_TYPE_BLOCKING:
                 $result = self::BLOCKING_FREE;

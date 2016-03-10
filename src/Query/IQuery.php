@@ -2,9 +2,10 @@
 
 namespace Imhonet\Connection\Query;
 
+use Imhonet\Connection\IErrorable;
 use Imhonet\Connection\Resource\IResource;
 
-interface IQuery extends \SeekableIterator
+interface IQuery extends \SeekableIterator, IErrorable
 {
     const STATUS_OK = 0;
     const STATUS_ERROR = 1;
@@ -37,11 +38,6 @@ interface IQuery extends \SeekableIterator
      * @return mixed
      */
     public function execute();
-
-    /**
-     * @return int
-     */
-    public function getErrorCode();
 
     /**
      * @return int

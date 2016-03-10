@@ -7,7 +7,7 @@ use Imhonet\Connection\DataFormat\IMulti;
 use Imhonet\Connection\Query\IQuery;
 use Imhonet\Connection\Resource\IResource;
 
-class Request implements \Iterator
+class Request implements \Iterator, IErrorable
 {
     /**
      * @var IQuery
@@ -107,7 +107,7 @@ class Request implements \Iterator
      */
     public function getErrorCode()
     {
-        return $this->query->getErrorCode();
+        return $this->query->getErrorCode() | ($this->isFormaterErrorable() ? $this->getFormater()->getErrorCode() : 0);
     }
 
     /**
@@ -135,7 +135,7 @@ class Request implements \Iterator
     }
 
     /**
-     * @return IDataFormat|IMulti
+     * @return IDataFormat|IMulti|IErrorable
      */
     private function getFormater()
     {
@@ -155,6 +155,11 @@ class Request implements \Iterator
     private function isFormaterIterable()
     {
         return $this->format instanceof IMulti;
+    }
+
+    private function isFormaterErrorable()
+    {
+        return $this->format instanceof IErrorable;
     }
 
     /**
@@ -195,5 +200,16 @@ class Request implements \Iterator
     public function rewind()
     {
         assert($this->is_valid_iteration, 'Repeated iterations not supported');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function __debugInfo()
+    {
+        return array(
+            'query' => $this->query->getDebugInfo(),
+            'error' => $this->query->getDebugInfo(IQuery::INFO_TYPE_ERROR),
+        );
     }
 }
