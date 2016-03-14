@@ -106,6 +106,7 @@ class Search extends Query
     {
         return array(
             'index' => $this->resource->getDatabase(),
+            'type' => $this->index,
             '_source' => false,
             'body' => array(
                 'query' => array(
@@ -130,8 +131,6 @@ class Search extends Query
         $filters = array();
 
         foreach ($this->filter as $field => $values) {
-            $field = $this->index . '.' . $field;
-
             foreach ($values as $value) {
                 $filters[] = array(
                     'term' => array($field => $value)
