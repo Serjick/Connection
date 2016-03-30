@@ -20,16 +20,9 @@ class Rekey implements IArr, IDecorator
     private $value_key;
     private $grouping = false;
 
-    /**
-     * @param array|null $data
-     * @inheritdoc
-     */
-    public function setData($data)
+    protected function doValidations($data)
     {
         assert(is_array($data) || $data === null);
-        $this->data = $data;
-
-        return $this;
     }
 
     public function formatData()
@@ -84,10 +77,5 @@ class Rekey implements IArr, IDecorator
         $this->grouping = $grouping;
 
         return $this;
-    }
-
-    protected function getDataRaw()
-    {
-        return $this->data;
     }
 }
