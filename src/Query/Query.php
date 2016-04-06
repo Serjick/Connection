@@ -16,6 +16,8 @@ abstract class Query implements IQuery
      */
     protected $resource;
 
+	protected $next = true;
+
     /**
      * @param IResource $resource
      * @return $this
@@ -68,7 +70,7 @@ abstract class Query implements IQuery
      */
     public function current()
     {
-        // TODO: Implement current() method.
+		return $this;
     }
 
     /**
@@ -76,7 +78,7 @@ abstract class Query implements IQuery
      */
     public function key()
     {
-        // TODO: Implement key() method.
+		return 0;
     }
 
     /**
@@ -84,7 +86,7 @@ abstract class Query implements IQuery
      */
     public function next()
     {
-        // TODO: Implement next() method.
+		$this->next = false;
     }
 
     /**
@@ -92,7 +94,7 @@ abstract class Query implements IQuery
      */
     public function rewind()
     {
-        // TODO: Implement rewind() method.
+		$this->next = true;
     }
 
     /**
@@ -100,7 +102,7 @@ abstract class Query implements IQuery
      */
     public function valid()
     {
-        // TODO: Implement valid() method.
+		return $this->next;
     }
 
     /**
@@ -121,4 +123,35 @@ abstract class Query implements IQuery
 
         return $result;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCacheKey()
+	{
+		return '';
+	}
+
+    /**
+     * @inheritDoc
+     */
+	public function disableQuery()
+	{
+	}
+
+    /**
+     * @inheritDoc
+     */
+	public function getExpire()
+	{
+		return null;
+	}
+
+    /**
+     * @inheritDoc
+     */
+	public function getTags()
+	{
+		return null;
+	}
 }

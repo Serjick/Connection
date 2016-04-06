@@ -3,9 +3,13 @@
 namespace Imhonet\Connection\DataFormat\Arr\PDO;
 
 use Imhonet\Connection\DataFormat\IArr;
+use Imhonet\Connection\DataFormat\TCacheKey;
+use Imhonet\Connection\Cache\ICachable;
 
-class Group implements IArr
+class Group implements IArr, ICachable
 {
+	use TCacheKey;
+
     /**
      * @var \PDOStatement|bool
      */

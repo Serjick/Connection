@@ -5,10 +5,14 @@ namespace Imhonet\Connection\DataFormat\Arr\PDO;
 use Imhonet\Connection\DataFormat\IArr;
 use Imhonet\Connection\DataFormat\IDecorator;
 use Imhonet\Connection\DataFormat\TDecorator;
+use Imhonet\Connection\DataFormat\TCacheKey;
+use Imhonet\Connection\Cache\ICachable;
 
-class Rekey implements IArr, IDecorator
+class Rekey implements IArr, IDecorator, ICachable
 {
     use TDecorator;
+	use TCacheKey;
+
 
     /**
      * @var \PDOStatement
