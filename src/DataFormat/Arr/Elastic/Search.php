@@ -3,6 +3,7 @@
 namespace Imhonet\Connection\DataFormat\Arr\Elastic;
 
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
+use Elasticsearch\Common\Exceptions\ElasticsearchException;
 use Imhonet\Connection\DataFormat\IArr;
 
 /**
@@ -47,7 +48,12 @@ class Search implements IArr
         $result = array();
 
         if ($this->isValid()) {
-            $result = array_column($this->current()['hits']['hits'], '_id');
+            try {
+                $result = array_column($this->current()['hits']['hits'], '_id');
+            } catch (ElasticsearchException $e) {
+            }
+
+            assert(empty($e), isset($e) ? (string) $e : null);
         }
 
         return $result;
