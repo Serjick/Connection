@@ -63,19 +63,19 @@ interface IQuery extends \SeekableIterator, IErrorable
     /**
      * @return string
      */
-	public function getCacheKey();
+    public function getCacheKey();
 
-	/**
-	 */
-	public function disableQuery();
+    /**
+     */
+    public function disableQuery();
 
     /**
      * @return int|null
      */
-	public function getExpire();
+    public function getExpire();
 
-	   /**
+       /**
      * @return string[]|null
      */
-	public function getTags();
+    public function getTags();
 }

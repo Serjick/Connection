@@ -116,6 +116,10 @@ class IteratorTest extends \PHPUnit_Framework_TestCase
             'key',
             'valid',
             'rewind',
+            'getCacheKey',
+            'disableQuery',
+            'getExpire',
+            'getTags',
         ));
 
         return $query;

@@ -8,7 +8,7 @@ use Imhonet\Connection\Cache\ICachable;
 
 class Group implements IArr, ICachable
 {
-	use TCacheKey;
+    use TCacheKey;
 
     /**
      * @var \PDOStatement|bool

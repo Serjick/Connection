@@ -8,7 +8,7 @@ use Imhonet\Connection\Cache\ICachable;
 
 class Get implements IArr, ICachable
 {
-	use TCacheKey;
+    use TCacheKey;
 
     /**
      * @var \PDOStatement

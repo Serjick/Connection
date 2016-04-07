@@ -35,10 +35,10 @@ class Request implements \Iterator, IErrorable
     private $is_valid_iteration = true;
 
     /**
-	 * @var ICacher
+     * @var ICacher
      */
-	private $cacher = null;
-	private $error = array();
+    private $cacher = null;
+    private $error = array();
 
     /**
      * @param IQuery $query
@@ -74,33 +74,32 @@ class Request implements \Iterator, IErrorable
      */
     private function getResponse($cached = true)
     {
-		if ($this->cacher !== null && $this->cache_loaded === false) {
-			$this->loadCache();
-			$this->cache_loaded = true;
-		}
+        if ($this->cacher !== null && $this->cache_loaded === false) {
+            $this->loadCache();
+            $this->cache_loaded = true;
+        }
 
         if (!$cached || !$this->hasResponse()) {
-			try {
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->query)) {
-					$this->cacher->load($this->generateCacheKeys($this->query));
+            try {
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->query)) {
+                    $this->cacher->load($this->generateCacheKeys($this->query));
 
-					if ($this->cacher->isCached($this->generateCacheKey($this->query))) {
-						$this->response = $this->cacher->get($this->generateCacheKey($this->query));
-					} else {
-						$this->cacher->lock($this->generateCacheKey($this->query), $this->query->getTags(), $this->query->getExpire());
-						$this->response = $this->query->execute();
-						$this->cacher->set($this->generateCacheKey($this->query), $this->response, $this->query->getTags(), $this->query->getExpire());
-					}
-				} else {
-					$this->response = $this->query->execute();
-				}
+                    if ($this->cacher->isCached($this->generateCacheKey($this->query))) {
+                        $this->response = $this->cacher->get($this->generateCacheKey($this->query));
+                    } else {
+                        $this->cacher->lock($this->generateCacheKey($this->query), $this->query->getTags(), $this->query->getExpire());
+                        $this->response = $this->query->execute();
+                        $this->cacher->set($this->generateCacheKey($this->query), $this->response, $this->query->getTags(), $this->query->getExpire());
+                    }
+                } else {
+                    $this->response = $this->query->execute();
+                }
 
-				$this->has_response = true;
-			}
-			catch(CacheException $e) {
-				$this->response = null;
-				$this->error[$this->generateCacheKey($this->query)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
-			}
+                $this->has_response = true;
+            } catch (CacheException $e) {
+                $this->response = null;
+                $this->error[$this->generateCacheKey($this->query)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
+            }
         }
 
         return $this->response;
@@ -119,25 +118,24 @@ class Request implements \Iterator, IErrorable
      */
     public function getData()
     {
-		try {
-			if ($this->cacher !== null && $this->cacher->isCacheable($this->format) && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format))) {
-				$result = $this->cacher->get($this->generateCacheKey($this->query, $this->format));
-			} else {
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-					$this->cacher->lock($this->generateCacheKey($this->query, $this->format), $this->query->getTags(), $this->query->getExpire());
-				}
+        try {
+            if ($this->cacher !== null && $this->cacher->isCacheable($this->format) && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format))) {
+                $result = $this->cacher->get($this->generateCacheKey($this->query, $this->format));
+            } else {
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
+                    $this->cacher->lock($this->generateCacheKey($this->query, $this->format), $this->query->getTags(), $this->query->getExpire());
+                }
 
-				$result = $this->getFormater()->formatData();
+                $result = $this->getFormater()->formatData();
 
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-					$this->cacher->set($this->generateCacheKey($this->query, $this->format), $result, $this->query->getTags(), $this->query->getExpire());
-				}
-			}
-		}
-		catch(CacheException $e) {
-			$result = null;
-			$this->error[$this->generateCacheKey($this->query, $this->format)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
-		}
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
+                    $this->cacher->set($this->generateCacheKey($this->query, $this->format), $result, $this->query->getTags(), $this->query->getExpire());
+                }
+            }
+        } catch (CacheException $e) {
+            $result = null;
+            $this->error[$this->generateCacheKey($this->query, $this->format)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
+        }
 
         $this->query->seek($this->key());
 
@@ -149,25 +147,24 @@ class Request implements \Iterator, IErrorable
      */
     public function getValue()
     {
-		try {
-			if ($this->cacher !== null && $this->cacher->isCacheable($this->format) && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format))) {
-				$result = $this->cacher->get($this->generateCacheKey($this->query, $this->format));
-			} else {
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-					$this->cacher->lock($this->generateCacheKey($this->query, $this->format), $this->query->getTags(), $this->query->getExpire());
-				}
+        try {
+            if ($this->cacher !== null && $this->cacher->isCacheable($this->format) && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format))) {
+                $result = $this->cacher->get($this->generateCacheKey($this->query, $this->format));
+            } else {
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
+                    $this->cacher->lock($this->generateCacheKey($this->query, $this->format), $this->query->getTags(), $this->query->getExpire());
+                }
 
-				$result = $this->getFormater()->formatValue();
+                $result = $this->getFormater()->formatValue();
 
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-					$this->cacher->set($this->generateCacheKey($this->query, $this->format), $result, $this->query->getTags(), $this->query->getExpire());
-				}
-			}
-		}
-		catch(CacheException $e) {
-			$result = null;
-			$this->error[$this->generateCacheKey($this->query, $this->format)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
-		}
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
+                    $this->cacher->set($this->generateCacheKey($this->query, $this->format), $result, $this->query->getTags(), $this->query->getExpire());
+                }
+            }
+        } catch (CacheException $e) {
+            $result = null;
+            $this->error[$this->generateCacheKey($this->query, $this->format)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
+        }
 
         $this->query->seek($this->key());
 
@@ -179,9 +176,9 @@ class Request implements \Iterator, IErrorable
      */
     public function getErrorCode()
     {
-		if (array_key_exists($this->generateCacheKey($this->query, $this->format), $this->error)) { //cache error
-			return $this->error;
-		}
+        if (array_key_exists($this->generateCacheKey($this->query, $this->format), $this->error)) { //cache error
+            return $this->error;
+        }
 
         return $this->query->getErrorCode() | ($this->isFormaterErrorable() ? $this->getFormater()->getErrorCode() : 0);
     }
@@ -191,25 +188,24 @@ class Request implements \Iterator, IErrorable
      */
     public function getCount()
     {
-		try {
-			if ($this->cacher !== null && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT))) {
-				$result = $this->cacher->get($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT));
-			} else {
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-					$this->cacher->lock($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT), $this->query->getTags(), $this->query->getExpire());
-				}
+        try {
+            if ($this->cacher !== null && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT))) {
+                $result = $this->cacher->get($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT));
+            } else {
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
+                    $this->cacher->lock($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT), $this->query->getTags(), $this->query->getExpire());
+                }
 
-				$result = $this->query->getCount();
+                $result = $this->query->getCount();
 
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-					$this->cacher->set($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT), $result, $this->query->getTags(), $this->query->getExpire());
-				}
-			}
-		}
-		catch(CacheException $e) {
-			$result = null;
-			$this->error[$this->generateCacheKey($this->query, $this->format)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
-		}
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
+                    $this->cacher->set($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT), $result, $this->query->getTags(), $this->query->getExpire());
+                }
+            }
+        } catch (CacheException $e) {
+            $result = null;
+            $this->error[$this->generateCacheKey($this->query, $this->format)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
+        }
 
         return $result;
     }
@@ -219,25 +215,24 @@ class Request implements \Iterator, IErrorable
      */
     public function getCountTotal()
     {
-		try {
-			if ($this->cacher !== null && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT_TOTAL))) {
-				$result = $this->cacher->get($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT_TOTAL));
-			} else {
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-					$this->cacher->lock($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT_TOTAL), $this->query->getTags(), $this->query->getExpire());
-				}
+        try {
+            if ($this->cacher !== null && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT_TOTAL))) {
+                $result = $this->cacher->get($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT_TOTAL));
+            } else {
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
+                    $this->cacher->lock($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT_TOTAL), $this->query->getTags(), $this->query->getExpire());
+                }
 
-				$result = $this->query->getCountTotal();
+                $result = $this->query->getCountTotal();
 
-				if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-					$this->cacher->set($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT_TOTAL), $result, $this->query->getTags(), $this->query->getExpire());
-				}
-			}
-		}
-		catch(CacheException $e) {
-			$result = null;
-			$this->error[$this->generateCacheKey($this->query, $this->format)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
-		}
+                if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
+                    $this->cacher->set($this->generateCacheKey($this->query, $this->format, ICacher::TYPE_COUNT_TOTAL), $result, $this->query->getTags(), $this->query->getExpire());
+                }
+            }
+        } catch (CacheException $e) {
+            $result = null;
+            $this->error[$this->generateCacheKey($this->query, $this->format)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
+        }
 
         return $result;
     }
@@ -329,69 +324,67 @@ class Request implements \Iterator, IErrorable
         );
     }
 
-	/**
-	 * @param ICacher $cacher
-	 */
-	public function setCacher(ICacher $cacher)
-	{
-		$this->cacher = $cacher;
-	}
+    /**
+     * @param ICacher $cacher
+     */
+    public function setCacher(ICacher $cacher)
+    {
+        $this->cacher = $cacher;
+    }
 
-	private function generateCacheKey(IQuery $query, IDataFormat $formater = null, $type = null)
-	{
-		$key = 'query_' . $query->getCacheKey();
+    private function generateCacheKey(IQuery $query, IDataFormat $formater = null, $type = null)
+    {
+        $key = 'query_' . $query->getCacheKey();
 
-		if ($formater !== null && $this->cacher->isCacheable($formater) ) {
-			$key = $key . '_formater_' . $formater->getCacheKey();
-		}
+        if ($formater !== null && $this->cacher->isCacheable($formater)) {
+            $key = $key . '_formater_' . $formater->getCacheKey();
+        }
 
-		if ($type !== null) {
-			$key = $key . '_' . $type;
-		}
+        if ($type !== null) {
+            $key = $key . '_' . $type;
+        }
 
-		return $key;
-	}
+        return $key;
+    }
 
-	private function generateCacheKeys(IQuery $query, IDataFormat $formater = null)
-	{
-		$keys = array();
+    private function generateCacheKeys(IQuery $query, IDataFormat $formater = null)
+    {
+        $keys = array();
 
-		$current_query_position = $query->key();
+        $current_query_position = $query->key();
 
-		$query->rewind();
+        $query->rewind();
 
-		while($query->valid())
-		{
-			$key = $this->generateCacheKey($query, $formater);
+        while ($query->valid()) {
+            $key = $this->generateCacheKey($query, $formater);
 
-			$keys[] = $this->generateCacheKey($query, $formater);
-			$keys[] = $this->generateCacheKey($query, $formater, ICacher::TYPE_COUNT);
-			$keys[] = $this->generateCacheKey($query, $formater, ICacher::TYPE_COUNT_TOTAL);
+            $keys[] = $this->generateCacheKey($query, $formater);
+            $keys[] = $this->generateCacheKey($query, $formater, ICacher::TYPE_COUNT);
+            $keys[] = $this->generateCacheKey($query, $formater, ICacher::TYPE_COUNT_TOTAL);
 
-			$query->next();
-		}
+            $query->next();
+        }
 
-		$query->seek($current_query_position);
+        $query->seek($current_query_position);
 
-		return $keys;
-	}
+        return $keys;
+    }
 
-	public function loadCache()
-	{
-		$this->cacher->load($this->generateCacheKeys($this->query, $this->format));
+    public function loadCache()
+    {
+        $this->cacher->load($this->generateCacheKeys($this->query, $this->format));
 
-		$current_query_position = $this->query->key();
-		$this->query->rewind();
+        $current_query_position = $this->query->key();
+        $this->query->rewind();
 
-		while($this->query->valid())
-		{
-			if ($this->cacher->isCacheable($this->format) && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format))) {
-				$this->query->disableQuery();
-			}
+        while ($this->query->valid()) {
+            if ($this->cacher->isCacheable($this->format) && $this->cacher->isCached($this->generateCacheKey($this->query, $this->format))) {
+                $this->query->disableQuery();
+            }
 
-			$this->query->next();
-		}
+            $this->query->next();
+        }
 
-		$this->query->seek($current_query_position);
-	}
+        $this->query->seek($current_query_position);
+    }
 }

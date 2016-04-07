@@ -11,7 +11,7 @@ use Imhonet\Connection\Cache\ICachable;
 class Rekey implements IArr, IDecorator, ICachable
 {
     use TDecorator;
-	use TCacheKey;
+    use TCacheKey;
 
 
     /**

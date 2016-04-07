@@ -11,7 +11,7 @@ abstract class PDO extends Query
     private $params = array();
     private $placeholders = array();
 
-	private $disable = false;
+    private $disable = false;
 
     /**
      * @var \PDOStatement|null
@@ -206,16 +206,16 @@ abstract class PDO extends Query
         return $result;
     }
 
-	/**
+    /**
      * @inheritDoc
      */
     public function getCacheKey()
-	{
-		return md5($this->getStatement() . implode('_', $this->getParams()));
-	}
+    {
+        return md5($this->getStatement() . implode('_', $this->getParams()));
+    }
 
-	public function disableQuery()
-	{
-		$this->disable = true;
-	}
+    public function disableQuery()
+    {
+        $this->disable = true;
+    }
 }

@@ -7,5 +7,5 @@ interface ICachable
     /**
      * @return string
      */
-	public function getCacheKey();
+    public function getCacheKey();
 }

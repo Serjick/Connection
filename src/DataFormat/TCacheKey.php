@@ -8,7 +8,7 @@ trait TCacheKey
     /**
      * @inheritDoc
      */
-	public function getCacheKey()
+    public function getCacheKey()
     {
         return get_class($this);
     }

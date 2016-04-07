@@ -7,56 +7,56 @@ use Imhonet\Connection\Query;
 
 interface ICacher
 {
-	const TYPE_DATA = 'data';
-	const TYPE_VALUE = 'value';
-	const TYPE_COUNT = 'count';
-	const TYPE_COUNT_TOTAL = 'count_total';
+    const TYPE_DATA = 'data';
+    const TYPE_VALUE = 'value';
+    const TYPE_COUNT = 'count';
+    const TYPE_COUNT_TOTAL = 'count_total';
 
-	/**
-	 * @param mixed $object
-	 * @return bool
+    /**
+     * @param mixed $object
+     * @return bool
      */
-	public function isCacheable($object);
+    public function isCacheable($object);
 
-	/**
-	 * @param string $key
-	 * @return bool
+    /**
+     * @param string $key
+     * @return bool
      */
-	public function isCached($key);
+    public function isCached($key);
 
-	/**
-	 * @param string $key
-	 * @return mixed
+    /**
+     * @param string $key
+     * @return mixed
      */
-	public function get($key);
+    public function get($key);
 
-	/**
-	 * @param 
-	 * @return int|null
+    /**
+     * @param
+     * @return int|null
      */
-	public function set($key, $data, $tags = array(), $expire = null);
+    public function set($key, $data, $tags = array(), $expire = null);
 
-	/**
-	 * @param 
-	 * @return int|null
+    /**
+     * @param
+     * @return int|null
      */
-	public function lock($key, $tags = array(), $expire = null);
+    public function lock($key, $tags = array(), $expire = null);
 
-	/**
-	 * @param string[] $tags
-	 * @return int|null
+    /**
+     * @param string[] $tags
+     * @return int|null
      */
-	public function dropTags($tags);
+    public function dropTags($tags);
 
-	/**
-	 * @param string[] $kags
-	 * @return int|null
+    /**
+     * @param string[] $kags
+     * @return int|null
      */
-	public function dropKeys($keys);
+    public function dropKeys($keys);
 
-	/**
-	 * @param string[] $keys
-	 * @return bool
+    /**
+     * @param string[] $keys
+     * @return bool
      */
-	public function load($keys);
+    public function load($keys);
 }
