@@ -3,6 +3,7 @@
 namespace Imhonet\Connection\DataFormat\Arr\Elastic;
 
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
+use Elasticsearch\Common\Exceptions\ElasticsearchException;
 use Imhonet\Connection\DataFormat\IArr;
 
 /**
@@ -49,11 +50,16 @@ class Get implements IArr
         if ($this->isValid()) {
             $response = $this->current();
 
-            foreach ($response['docs'] as $doc) {
-                if ($doc['found']) {
-                    $result[] = $doc['_source'];
+            try {
+                foreach ($response['docs'] as $doc) {
+                    if ($doc['found']) {
+                        $result[] = $doc['_source'];
+                    }
                 }
+            } catch (ElasticsearchException $e) {
             }
+
+            assert(empty($e), isset($e) ? (string) $e : null);
         }
 
         return $result;
