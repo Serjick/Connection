@@ -87,7 +87,7 @@ class Request implements \Iterator, IErrorable
                     if ($this->cacher->isCached($this->generateCacheKey($this->query))) {
                         $this->response = $this->cacher->get($this->generateCacheKey($this->query));
                     } else {
-                        $this->cacher->lock($this->generateCacheKey($this->query), $this->query->getTags(), $this->query->getExpire());
+                        $this->cacher->lock($this->generateCacheKey($this->query));
                         $this->response = $this->query->execute();
                         $this->cacher->set($this->generateCacheKey($this->query), $this->response, $this->query->getTags(), $this->query->getExpire());
                     }
@@ -123,7 +123,7 @@ class Request implements \Iterator, IErrorable
                 $result = $this->cacher->get($this->generateCacheKey($this->query, $this->format));
             } else {
                 if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-                    $this->cacher->lock($this->generateCacheKey($this->query, $this->format), $this->query->getTags(), $this->query->getExpire());
+                    $this->cacher->lock($this->generateCacheKey($this->query, $this->format));
                 }
 
                 $result = $this->getFormater()->formatData();
@@ -152,7 +152,7 @@ class Request implements \Iterator, IErrorable
                 $result = $this->cacher->get($this->generateCacheKey($this->query, $this->format));
             } else {
                 if ($this->cacher !== null && $this->cacher->isCacheable($this->format)) {
-                    $this->cacher->lock($this->generateCacheKey($this->query, $this->format), $this->query->getTags(), $this->query->getExpire());
+                    $this->cacher->lock($this->generateCacheKey($this->query, $this->format));
                 }
 
                 $result = $this->getFormater()->formatValue();

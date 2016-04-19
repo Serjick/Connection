@@ -2,9 +2,8 @@
 
 namespace Imhonet\Connection\Cache;
 
-use Imhonet\Connection\Resource\IResource;
-use Imhonet\Connection\Query\Memcached;
 use Imhonet\Connection\Query;
+use Imhonet\Connection\Cache\QueryStrategy;
 
 class Cacher implements ICacher
 {
@@ -17,36 +16,16 @@ class Cacher implements ICacher
     private $cached_keys = array();
     private $cached_tags = array();
 
-    private $main_resource;
-    private $tags_resource;
+    private $main_query_fetcher;
+    private $tags_query_fetcher;
 
     private $expire = null;
-    private $tags = array();
+    private $default_tags = array();
 
-    public static function instanceCacherMemcache($host, $port, $tags_host = null, $tags_port = null)
+    public function __construct(QueryStrategy\IQueryFetcherStrategy $main_query_fetcher, QueryStrategy\IQueryFetcherStrategy $tag_query_fetcher = null)
     {
-        if ($tags_host === null || $tags_port === null) {
-            $tags_host = $host;
-            $tags_port = $port;
-        }
-
-        $resource = \Imhonet\Connection\Resource\Factory::getInstance()
-            ->setHost($host)
-            ->setPort($port)
-            ->getResource(\Imhonet\Connection\Resource\Factory::TYPE_MEMCACHED);
-
-        $tags_resource = \Imhonet\Connection\Resource\Factory::getInstance()
-            ->setHost($tags_host)
-            ->setPort($tags_port)
-            ->getResource(\Imhonet\Connection\Resource\Factory::TYPE_MEMCACHED);
-
-        return new Cacher($resource, $tags_resource);
-    }
-
-    public function __construct(IResource $main_resource, IResource $tag_resource)
-    {
-        $this->main_resource = $main_resource;
-        $this->tags_resource = $tag_resource;
+        $this->main_query_fetcher = $main_query_fetcher;
+        $this->tags_query_fetcher = $tag_query_fetcher;
     }
 
     /**
@@ -95,9 +74,10 @@ class Cacher implements ICacher
      */
     public function set($key, $data, $tags = array(), $expire = null)
     {
-        $this->lock($key, $tags, $expire);
+        $this->createStale($key, $tags, $expire);
+        $this->createTags($tags);
 
-        $set_query = $this->createSetQuery($this->main_resource);
+        $set_query = $this->main_query_fetcher->createSetQuery();
         $set_query->setData(array($this->generateDataKey($key) => array($data)));
         $set_query->setExpire(time() + Cacher::DATA_EXPIRE);
         $set_query->execute();
@@ -111,55 +91,9 @@ class Cacher implements ICacher
      * @param
      * @return int|null
      */
-    public function lock($key, $tags = array(), $expire = null)
+    public function lock($key)
     {
-        if ($expire === null) {
-            $expire = $this->expire !== null ? $this->expire : Cacher::DEFAULT_EXPIRE;
-        }
-
-        if (empty($tags)) {
-            $tags = $this->tags;
-        }
-
-        $cache_stale = array($this->generateStaleKey($key) => array('tags' => $tags, 'timestamp' => time()));
-
-        $set_query = $this->createSetQuery($this->main_resource);
-        $set_query->setData($cache_stale);
-        $set_query->setExpire(time() + $expire);
-        $set_query->execute();
-
-        $get_tags = array();
-        $new_tags = array();
-
-        foreach ($tags as $tag) {
-            if (!array_key_exists($tag, $this->cached_tags)) {
-                $get_tags[$tag] = $this->generateTagKey($tag);
-            }
-        }
-
-        if (!empty($get_tags)) {
-            $get_tags_query = $this->createGetQuery($this->tags_resource);
-            $get_tags_query->setKeys($get_tags);
-            $get_tags_data = $get_tags_query->execute();
-
-            foreach ($get_tags as $tag => $tag_key) {
-                if (array_key_exists($tag_key, $get_tags_data)) {
-                    $this->cached_tags[$tag] = $get_tags_data[$tag_key];
-                    unset($get_tags[$tag]);
-                } else {
-                    $timestamp = time();
-                    $this->cached_tags[$tag] = $timestamp;
-                    $new_tags[$tag_key] = $timestamp;
-                }
-            }
-
-            if (!empty($new_tags)) {
-                $set_tags_query = $this->createSetQuery($this->tags_resource);
-                $set_tags_query->setData($new_tags);
-                $set_tags_query->setExpire(time() + Cacher::TAGS_EXPIRE);
-                $set_tags_query->execute();
-            }
-        }
+        $this->createStale($key, array(), 1);
     }
 
 
@@ -173,14 +107,11 @@ class Cacher implements ICacher
         $tags_data = array();
 
         foreach ($tags as $tag) {
-            if (array_key_exists($tag, $this->cached_tags)) {
-                $this->cached_tags[$tag] = $timestamp;
-            }
-
+            $this->cached_tags[$tag] = $timestamp;
             $tags_data[$this->generateTagKey($tag)] = $timestamp;
         }
 
-        $set_tags_query = $this->createSetQuery($this->tags_resource);
+        $set_tags_query = $this->tags_query_fetcher ? $this->tags_query_fetcher->createSetQuery() : $this->main_query_fetcher->createSetQuery();
         $set_tags_query->setData($tags_data);
         $set_tags_query->setExpire(Cacher::TAGS_EXPIRE);
         $set_tags_query->execute();
@@ -202,7 +133,7 @@ class Cacher implements ICacher
             $keys_data[$this->generateStaleKey($key)] = array('timestamp' => 0);
         }
 
-        $set_query = $this->createSetQuery($this->main_resource);
+        $set_query = $this->main_query_fetcher->createSetQuery();
         $set_query->setData($keys_data);
         $set_query->setExpire(time());
         $set_query->execute();
@@ -214,7 +145,7 @@ class Cacher implements ICacher
      */
     public function load($keys)
     {
-        $this->_load(array_diff_assoc(array_combine($keys, $keys), $this->cached_keys));
+        $this->_load(array_diff_key(array_combine($keys, $keys), $this->cached_keys));
     }
 
     private function _load($keys)
@@ -229,7 +160,7 @@ class Cacher implements ICacher
                 $cache_keys[] = $this->generateDataKey($key);
             }
 
-            $get_query = $this->createGetQuery($this->main_resource);
+            $get_query = $this->main_query_fetcher->createGetQuery();
             $get_query->setKeys($cache_keys);
             $cached_data = $get_query->execute();
 
@@ -253,7 +184,7 @@ class Cacher implements ICacher
 
             if (!empty($keys)) {
                 if (!empty($cached_tags)) {
-                    $get_tags_query = $this->createGetQuery($this->tags_resource);
+                    $get_tags_query = $this->tags_query_fetcher ? $this->tags_query_fetcher->createGetQuery() : $this->main_query_fetcher->createGetQuery();
                     $get_tags_query->setKeys($cached_tags);
                     $tags_data = $get_tags_query->execute();
 
@@ -317,17 +248,65 @@ class Cacher implements ICacher
 
     public function setTags(array $tags)
     {
-        $this->tags = $tags;
+        $this->default_tags = $tags;
         return $this;
     }
 
-    protected function createGetQuery($resource)
+    private function createStale($key, $tags = array(), $expire = null)
     {
-        return (new Memcached\Get())->setResource($resource);
+        if ($expire === null) {
+            $expire = $this->expire !== null ? $this->expire : Cacher::DEFAULT_EXPIRE;
+        }
+
+        if (empty($tags)) {
+            $tags = $this->default_tags;
+        }
+
+        $cache_stale = array($this->generateStaleKey($key) => array('tags' => $tags, 'timestamp' => time()));
+
+        $set_query = $this->main_query_fetcher->createSetQuery();
+        $set_query->setData($cache_stale);
+        $set_query->setExpire(time() + $expire);
+        $set_query->execute();
     }
 
-    protected function createSetQuery($resource)
+    private function createTags($tags = array())
     {
-        return (new Memcached\Set())->setResource($resource);
+        if (empty($tags)) {
+            $tags = $this->default_tags;
+        }
+
+        $get_tags = array();
+        $new_tags = array();
+
+        foreach ($tags as $tag) {
+            if (!array_key_exists($tag, $this->cached_tags)) {
+                $get_tags[$tag] = $this->generateTagKey($tag);
+            }
+        }
+
+        if (!empty($get_tags)) {
+            $get_tags_query = $this->tags_query_fetcher ? $this->tags_query_fetcher->createGetQuery() : $this->main_query_fetcher->createGetQuery();
+            $get_tags_query->setKeys($get_tags);
+            $get_tags_data = $get_tags_query->execute();
+
+            foreach ($get_tags as $tag => $tag_key) {
+                if (array_key_exists($tag_key, $get_tags_data)) {
+                    $this->cached_tags[$tag] = $get_tags_data[$tag_key];
+                    unset($get_tags[$tag]);
+                } else {
+                    $timestamp = time();
+                    $this->cached_tags[$tag] = $timestamp;
+                    $new_tags[$tag_key] = $timestamp;
+                }
+            }
+
+            if (!empty($new_tags)) {
+                $set_tags_query = $this->tags_query_fetcher ? $this->tags_query_fetcher->createSetQuery() : $this->main_query_fetcher->createSetQuery();
+                $set_tags_query->setData($new_tags);
+                $set_tags_query->setExpire(time() + Cacher::TAGS_EXPIRE);
+                $set_tags_query->execute();
+            }
+        }
     }
 }

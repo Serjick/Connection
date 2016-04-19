@@ -17,6 +17,8 @@ abstract class Query implements IQuery
     protected $resource;
 
     protected $next = true;
+    
+    protected $disable = false;
 
     /**
      * @param IResource $resource
@@ -137,6 +139,7 @@ abstract class Query implements IQuery
      */
     public function disableQuery()
     {
+        $this->disable = true;
     }
 
     /**

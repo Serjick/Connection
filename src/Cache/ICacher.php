@@ -40,7 +40,7 @@ interface ICacher
      * @param
      * @return int|null
      */
-    public function lock($key, $tags = array(), $expire = null);
+    public function lock($key);
 
     /**
      * @param string[] $tags
