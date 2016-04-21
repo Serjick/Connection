@@ -20,7 +20,7 @@ class CacherFactory
 
         $tag_query_fetcher = null;
 
-        if ($tags_host === null || $tags_port === null) {
+        if ($tags_host !== null && $tags_port !== null) {
             $tags_resource = \Imhonet\Connection\Resource\Factory::getInstance()
                 ->setHost($tags_host)
                 ->setPort($tags_port)
