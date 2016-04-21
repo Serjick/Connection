@@ -80,26 +80,8 @@ class Request implements \Iterator, IErrorable
         }
 
         if (!$cached || !$this->hasResponse()) {
-            try {
-                if ($this->cacher !== null && $this->cacher->isCacheable($this->query)) {
-                    $this->cacher->load($this->generateCacheKeys($this->query));
-
-                    if ($this->cacher->isCached($this->generateCacheKey($this->query))) {
-                        $this->response = $this->cacher->get($this->generateCacheKey($this->query));
-                    } else {
-                        $this->cacher->lock($this->generateCacheKey($this->query));
-                        $this->response = $this->query->execute();
-                        $this->cacher->set($this->generateCacheKey($this->query), $this->response, $this->query->getTags(), $this->query->getExpire());
-                    }
-                } else {
-                    $this->response = $this->query->execute();
-                }
-
-                $this->has_response = true;
-            } catch (CacheException $e) {
-                $this->response = null;
-                $this->error[$this->generateCacheKey($this->query)] = IQuery::STATUS_TEMPORARY_UNAVAILABLE;
-            }
+            $this->response = $this->query->execute();
+            $this->has_response = true;
         }
 
         return $this->response;
@@ -356,11 +338,11 @@ class Request implements \Iterator, IErrorable
         $query->rewind();
 
         while ($query->valid()) {
-            $key = $this->generateCacheKey($query, $formater);
+            $tags = $query->getTags();
 
-            $keys[] = $this->generateCacheKey($query, $formater);
-            $keys[] = $this->generateCacheKey($query, $formater, ICacher::TYPE_COUNT);
-            $keys[] = $this->generateCacheKey($query, $formater, ICacher::TYPE_COUNT_TOTAL);
+            $keys[$this->generateCacheKey($query, $formater)] = $tags;
+            $keys[$this->generateCacheKey($query, $formater, ICacher::TYPE_COUNT)] = $tags;
+            $keys[$this->generateCacheKey($query, $formater, ICacher::TYPE_COUNT_TOTAL)] = $tags;
 
             $query->next();
         }

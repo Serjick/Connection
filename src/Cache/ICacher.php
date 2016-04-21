@@ -49,12 +49,6 @@ interface ICacher
     public function dropTags($tags);
 
     /**
-     * @param string[] $kags
-     * @return int|null
-     */
-    public function dropKeys($keys);
-
-    /**
      * @param string[] $keys
      * @return bool
      */
