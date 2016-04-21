@@ -154,7 +154,7 @@ class Cacher implements ICacher
                 if ($this->validateCacheData($key, $cached_data) && $this->validateCacheTags($key, $tags, $cached_data)) {
                     $this->cached_data[$key] = $cached_data[$this->generateDataKey($key)];
                 } elseif (!$this->validateCacheStale($key, $cached_data)) {
-                        $this->errors[$key] = 'Race condition exception!';
+                    $this->errors[$key] = 'Race condition exception!';
                 }
             }
         }
