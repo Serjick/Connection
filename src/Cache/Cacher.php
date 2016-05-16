@@ -24,7 +24,7 @@ class Cacher implements ICacher
     public function __construct(QueryStrategy\IQueryFetcherStrategy $main_query_fetcher, QueryStrategy\IQueryFetcherStrategy $tag_query_fetcher = null)
     {
         $this->main_query_fetcher = $main_query_fetcher;
-        $this->tags_query_fetcher = $tag_query_fetcher;
+        $this->tags_query_fetcher = $tag_query_fetcher ? $tag_query_fetcher : $main_query_fetcher;
     }
 
     /**
@@ -108,11 +108,8 @@ class Cacher implements ICacher
      */
     public function load($keys)
     {
-        $this->_load(array_diff_key($keys, $this->cached_data));
-    }
+        $keys = array_diff_key($keys, $this->cached_data);
 
-    private function _load($keys)
-    {
         if (!empty($keys)) {
             $cache_keys = array();
             $cache_tags_keys = array();
@@ -133,7 +130,7 @@ class Cacher implements ICacher
             }
 
             if (!empty($cache_tags_keys)) {
-                $get_tags_query = $this->tags_query_fetcher ? $this->tags_query_fetcher->createGetQuery() : $this->main_query_fetcher->createGetQuery();
+                $get_tags_query = $this->tags_query_fetcher->createGetQuery();
                 $get_tags_query->setKeys(array_keys($cache_tags_keys));
                 $cached_tags = $get_tags_query->execute();
 
@@ -235,21 +232,18 @@ class Cacher implements ICacher
         $get_tags = array();
         $new_tags = array();
 
-        foreach ($tags as $tag) {
-            if (!array_key_exists($tag, $this->cached_tags)) {
+        foreach (array_diff_key($tags, $this->cached_tags) as $tag) {
                 $get_tags[$tag] = $this->generateTagKey($tag);
-            }
         }
 
         if (!empty($get_tags)) {
-            $get_tags_query = $this->tags_query_fetcher ? $this->tags_query_fetcher->createGetQuery() : $this->main_query_fetcher->createGetQuery();
+            $get_tags_query = $this->tags_query_fetcher->createGetQuery();
             $get_tags_query->setKeys($get_tags);
             $get_tags_data = $get_tags_query->execute();
 
             foreach ($get_tags as $tag => $tag_key) {
                 if (array_key_exists($tag_key, $get_tags_data)) {
                     $this->cached_tags[$tag] = $get_tags_data[$tag_key];
-                    unset($get_tags[$tag]);
                 } else {
                     $this->cached_tags[$tag] = $timestamp;
                     $new_tags[$tag_key] = $timestamp;
@@ -264,7 +258,7 @@ class Cacher implements ICacher
 
     private function _setTags($tags_data)
     {
-        $set_tags_query = $this->tags_query_fetcher ? $this->tags_query_fetcher->createSetQuery() : $this->main_query_fetcher->createSetQuery();
+        $set_tags_query = $this->tags_query_fetcher->createSetQuery();
         $set_tags_query->setData($tags_data);
         $set_tags_query->setExpire(time() + Cacher::TAGS_EXPIRE);
         $ret = $set_tags_query->execute();
