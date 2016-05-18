@@ -233,7 +233,7 @@ class Cacher implements ICacher
         $new_tags = array();
 
         foreach (array_diff_key($tags, $this->cached_tags) as $tag) {
-                $get_tags[$tag] = $this->generateTagKey($tag);
+            $get_tags[$tag] = $this->generateTagKey($tag);
         }
 
         if (!empty($get_tags)) {
