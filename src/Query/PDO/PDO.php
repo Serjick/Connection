@@ -7,7 +7,11 @@ use Imhonet\Connection\Query\Query;
 abstract class PDO extends Query
 {
     private $last_query;
+
     private $statements = array();
+    /** @type array replace pairs for strtr() applying on statement before execution */
+    private $transformers = array();
+
     private $params = array();
     private $placeholders = array();
 
@@ -22,7 +26,7 @@ abstract class PDO extends Query
 
     /**
      * @param string $statement
-     * @return $this
+     * @return self
      */
     public function addStatement($statement)
     {
@@ -33,8 +37,8 @@ abstract class PDO extends Query
     }
 
     /**
-     * @param array|float|int|null|string ...$param [optional]
-     * @return $this
+     * @param array|float|int|null|string ...$ [optional]
+     * @return self
      */
     public function addParams()
     {
@@ -57,7 +61,7 @@ abstract class PDO extends Query
 
     /**
      * @param int $count
-     * @return $this
+     * @return self
      */
     private function addPlaceholder($count)
     {
@@ -123,11 +127,40 @@ abstract class PDO extends Query
         return $stmt;
     }
 
-    protected function getStatement()
+    protected function getStatementOriginal()
     {
         $statement_id = key($this->statements);
 
         return vsprintf($this->statements[$statement_id], $this->placeholders[$statement_id]);
+    }
+
+    protected function getStatement()
+    {
+        $statement = $this->getStatementOriginal();
+        $transformers = $this->getStatementTransformers();
+        $statement = str_ireplace(array_keys($transformers), array_values($transformers), $statement);
+
+        return $statement;
+    }
+
+    private function getStatementTransformers()
+    {
+        $statement_id = key($this->statements);
+
+        return isset($this->transformers[$statement_id]) ? $this->transformers[$statement_id] : [];
+    }
+
+    protected function addStatementTransformer($from, $to)
+    {
+        $statement_id = key($this->statements);
+
+        if (!isset($this->transformers[$statement_id])) {
+            $this->transformers[$statement_id] = [];
+        }
+
+        $this->transformers[$statement_id][$from] = $to;
+
+        return $this;
     }
 
     protected function changeStatement($from, $to)
@@ -193,7 +226,7 @@ abstract class PDO extends Query
     {
         switch ($type) {
             case self::INFO_TYPE_QUERY:
-                $stmt = str_replace('%', '%%', $this->getStatement());
+                $stmt = str_replace('%', '%%', $this->getStatementOriginal());
                 $stmt = str_replace('?', ' "%s"', $stmt, $count);
                 $result = vsprintf($stmt, $this->getParams());
                 break;

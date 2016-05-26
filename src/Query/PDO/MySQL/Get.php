@@ -28,29 +28,37 @@ class Get extends PDO\Get
     private $err_count;
 
     /**
+     * @todo check offset when limit not specified
+     * @todo last page optimization (FOUND_ROWS < LIMIT)
      * @inheritdoc
      */
     public function getCountTotal()
     {
         if (!$this->hasCountTotal()) {
-            if ($this->isGroupBy() && $this->isLimit()) {
-                if ($this->isSCFR()) {
-                    $this->getResponse();
-                } elseif (!$this->isExecuted()) {
-                    $this->changeStatement('SELECT ', 'SELECT SQL_CALC_FOUND_ROWS ');
-                    $this->getResponse();
+            if (!$this->isLimit()) {
+                if ($this->isExecuted()) {
+                    $this->count_total = $this->getCountTotalAfterExecute();
+                } elseif ($this->hasCount()) {
+                    $this->count_total = $this->getCount();
                 } else {
-                    $stmt = $this->getStmt($this->getStatementSCFR(), $this->getParams());
-                    $stmt->execute();
+                    $this->execute();
+                    $this->count_total = $this->getCountTotalAfterExecute();
                 }
-
-                $this->count_total = $this->getCountTotalAfterExecute();
-            } elseif ($this->isExecuted()) {
-                $this->count_total = $this->getCountTotalAfterExecute();
-            } elseif ($this->isLimit()) {
-                $this->count_total = $this->getCountTotalWithoutLimit();
             } else {
-                $this->count_total = $this->getCount();
+                if ($this->isExecuted() && $this->isSCFR()) {
+                    $this->count_total = $this->getCountTotalAfterExecute();
+                } elseif ($this->hasResponse()) {
+                    $this->count_total = $this->isGroupBy()
+                        ? $this->getCountTotalAutoSCFR()
+                        : $this->getCountTotalWithoutLimit();
+                } else {
+                    if (!$this->isSCFR()) {
+                        $this->addStatementTransformer('SELECT ', 'SELECT SQL_CALC_FOUND_ROWS ');
+                    }
+
+                    $this->execute();
+                    $this->count_total = $this->getCountTotalAfterExecute();
+                }
             }
         }
 
@@ -60,6 +68,22 @@ class Get extends PDO\Get
     private function getCountTotalAfterExecute()
     {
         try {
+            $found_rows = $this->getFoundRows();
+        } catch (\PDOException $e) {
+            $this->err_count_total = $e;
+        }
+
+        return isset($found_rows) ? $found_rows : $this->count_total;
+    }
+
+    private function getCountTotalAutoSCFR()
+    {
+        if (!$this->isSCFR()) {
+            $this->addStatementTransformer('SELECT ', 'SELECT SQL_CALC_FOUND_ROWS ');
+        }
+
+        try {
+            $this->getStmt($this->getStatement(), $this->getParams())->execute();
             $found_rows = $this->getFoundRows();
         } catch (\PDOException $e) {
             $this->err_count_total = $e;
@@ -139,6 +163,7 @@ class Get extends PDO\Get
     }
 
     /**
+     * @todo support unbuffered queries
      * @return string
      * @throws \PDOException
      */
@@ -208,12 +233,12 @@ class Get extends PDO\Get
      */
     private function getStatementCount()
     {
-        return sprintf(self::SQL_WRAP_COUNT, $this->getStatement());
-    }
+        $replace = array(
+            'SQL_CALC_FOUND_ROWS' => '',
+        );
+        $statement = str_ireplace(array_keys($replace), array_values($replace), rtrim($this->getStatement(), ';'));
 
-    private function getStatementSCFR()
-    {
-        return str_ireplace('SELECT ', 'SELECT SQL_CALC_FOUND_ROWS ', $this->getStatement());
+        return sprintf(self::SQL_WRAP_COUNT, $statement);
     }
 
     private function getStatementLimitless()
@@ -224,7 +249,7 @@ class Get extends PDO\Get
             'OFFSET ' => '#OFFSET ',
         );
 
-        return strtr($this->getStatement(), $replace);
+        return str_ireplace(array_keys($replace), array_values($replace), $this->getStatement());
     }
 
     /**
