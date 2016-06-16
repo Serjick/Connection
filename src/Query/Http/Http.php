@@ -20,6 +20,8 @@ abstract class Http extends Query
 
     private $url;
     private $ip;
+    private $resolve_ip;
+    private $proxy_ip;
     private $params = array();
     private $params_mode = array();
     private $headers = array();
@@ -51,6 +53,28 @@ abstract class Http extends Query
         parent::__clone();
 
         $this->success = null;
+    }
+
+    /**
+     * @param string $proxy_ip
+     * @return self
+     */
+    public function setProxyIp($proxy_ip)
+    {
+        $this->proxy_ip = $proxy_ip;
+
+        return $this;
+    }
+
+    /**
+     * @param string $ip
+     * @return self
+     */
+    public function setIp($ip)
+    {
+        $this->ip = $ip;
+
+        return $this;
     }
 
     /**
@@ -107,12 +131,12 @@ abstract class Http extends Query
     }
 
     /**
-     * @param string $ip
+     * @param string $resolve_ip
      * @return self
      */
-    public function setDNSResolve($ip)
+    public function setDNSResolve($resolve_ip)
     {
-        $this->ip = $ip;
+        $this->resolve_ip = $resolve_ip;
 
         return $this;
     }
@@ -184,13 +208,21 @@ abstract class Http extends Query
         curl_setopt($handle, \CURLOPT_PRIVATE, json_encode(['id' => $this->query_id]));
         curl_setopt($handle, \CURLOPT_URL, $url);
 
-        if ($this->ip) {
-            curl_setopt($handle, \CURLOPT_RESOLVE, [$this->getHostWithPort() . ':' . $this->ip]);
+        if ($this->resolve_ip) {
+            curl_setopt($handle, \CURLOPT_RESOLVE, [$this->getHostWithPort() . ':' . $this->resolve_ip]);
         }
 
         if (!empty($post)) {
             curl_setopt($handle, \CURLOPT_POST, true);
             curl_setopt($handle, \CURLOPT_POSTFIELDS, $post);
+        }
+
+        if ($this->proxy_ip) {
+            curl_setopt($handle, \CURLOPT_PROXY, $this->proxy_ip);
+        }
+
+        if ($this->ip) {
+            curl_setopt($handle, \CURLOPT_INTERFACE, $this->ip);
         }
 
         curl_setopt($handle, \CURLOPT_HTTPHEADER, $this->getHeaders());
