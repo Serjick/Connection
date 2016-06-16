@@ -223,7 +223,6 @@ abstract class Http extends Query
 
         if ($this->ip) {
             curl_setopt($handle, \CURLOPT_INTERFACE, $this->ip);
-            curl_setopt($handle, \CURLOPT_IPRESOLVE, \CURL_IPRESOLVE_WHATEVER);
         }
 
         curl_setopt($handle, \CURLOPT_HTTPHEADER, $this->getHeaders());
