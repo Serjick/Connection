@@ -88,13 +88,15 @@ abstract class Http implements IMulti, IErrorable
     private function waitTransportActivity()
     {
         $count = curl_multi_select($this->handle);
+        $still_running = $this->getCountRunning();
 
-        if ($count > 0) {
-            $this->setQueueSize('curl_multi_exec', $this->getCountRunning());
-            --$count;
+        if ($count != -1) {
+            if ($count > 0) {
+                $this->setQueueSize('curl_multi_exec', $still_running);
+            }
+
+            $this->setQueueSize('curl_multi_select', --$count);
         }
-
-        $this->setQueueSize('curl_multi_select', $count);
     }
 
     private function getCountRunning()
@@ -126,7 +128,7 @@ abstract class Http implements IMulti, IErrorable
     public function getErrorCode()
     {
         return (int) ($this->getResponseResultCode() !== \CURLE_OK
-            || curl_getinfo($this->getResponseHandle(), CURLINFO_HTTP_CODE) >= 400
+            || curl_getinfo($this->getResponseHandle(), \CURLINFO_HTTP_CODE) >= 400
         );
     }
 
