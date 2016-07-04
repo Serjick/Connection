@@ -2,6 +2,7 @@
 
 namespace Imhonet\Connection\DataFormat\Hash\Http;
 
+use Imhonet\Connection\DataFormat\Generic\Http;
 use Imhonet\Connection\DataFormat\IHash;
 
 /**

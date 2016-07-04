@@ -1,6 +1,6 @@
 <?php
 
-namespace Imhonet\Connection\DataFormat\Hash\Http;
+namespace Imhonet\Connection\DataFormat\Generic;
 
 use Imhonet\Connection\DataFormat\IMulti;
 use Imhonet\Connection\IErrorable;
@@ -8,27 +8,18 @@ use Imhonet\Connection\Cache\ICachable;
 
 abstract class Http implements IMulti, IErrorable, ICachable
 {
-    /** @type resource */
-    private $handle;
+    /** @type \Imhonet\Connection\Response\Http */
+    private $data;
 
-    /**
-     * @type array
-     * @see http://php.net/manual/en/function.curl-multi-info-read.php#refsect1-function.curl-multi-info-read-returnvalues
-     */
     private $response;
 
     /**
-     * amount of unhandled responses
+     * @param \Imhonet\Connection\Response\Http $data
+     * @return self
      */
-    private $todo_count = array(
-        'curl_multi_select' => null,
-        'curl_multi_info_read' => null,
-        'curl_multi_exec' => null,
-    );
-
     public function setData($data)
     {
-        $this->handle = $data;
+        $this->data = $data;
 
         return $this;
     }
@@ -65,15 +56,14 @@ abstract class Http implements IMulti, IErrorable, ICachable
         return $this->getResponseData()['result'];
     }
 
+    /**
+     * @return array|null
+     * @see http://php.net/manual/en/function.curl-multi-info-read.php#refsect1-function.curl-multi-info-read-returnvalues
+     */
     private function getResponseData()
     {
         if ($this->response === null) {
-            while (false === $this->response = curl_multi_info_read($this->handle, $msgs_in_queue)) {
-                $this->waitTransportActivity();
-            }
-
-            $this->setQueueSize('curl_multi_info_read', $msgs_in_queue);
-            $this->setQueueSize('curl_multi_select', $this->todo_count['curl_multi_select'] - 1);
+            $this->response = $this->data->getResponse();
         }
 
         return $this->response;
@@ -86,44 +76,13 @@ abstract class Http implements IMulti, IErrorable, ICachable
             : null;
     }
 
-    private function waitTransportActivity()
-    {
-        $count = curl_multi_select($this->handle);
-        $still_running = $this->getCountRunning();
-
-        if ($count != -1) {
-            if ($count > 0) {
-                $this->setQueueSize('curl_multi_exec', $still_running);
-            }
-
-            $this->setQueueSize('curl_multi_select', --$count);
-        }
-    }
-
-    private function getCountRunning()
-    {
-        curl_multi_exec($this->handle, $still_running);
-
-        return $still_running;
-    }
-
     private function freeResponse()
     {
         if ($handle = $this->getResponseHandle()) {
-            curl_multi_remove_handle($this->handle, $handle);
+            $this->data->dropHandle($handle);
         }
-    }
 
-    /**
-     * @param string $queue
-     * @param int $count
-     * @return self
-     */
-    private function setQueueSize($queue, $count)
-    {
-        $this->todo_count[$queue] = $count > 0 ? $count : 0;
-
-        return $this;
+        $this->response = null;
     }
 
     public function getErrorCode()
@@ -139,9 +98,8 @@ abstract class Http implements IMulti, IErrorable, ICachable
     public function moveNext()
     {
         $this->freeResponse();
-        $this->response = null;
 
-        return array_sum($this->todo_count) > 0 || $this->getCountRunning();
+        return count($this->data) > 0;
     }
 
     /**

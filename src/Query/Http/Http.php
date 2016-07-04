@@ -4,6 +4,7 @@ namespace Imhonet\Connection\Query\Http;
 
 use Imhonet\Connection\Query\Query;
 use Imhonet\Connection\Query\TImmutable;
+use Imhonet\Connection\Response\Http as ResponseWrapper;
 
 abstract class Http extends Query
 {
@@ -31,6 +32,10 @@ abstract class Http extends Query
      * @var resource|null
      */
     private $handle;
+    /**
+     * @var ResponseWrapper
+     */
+    private $wrapper;
     /**
      * @var bool|null
      */
@@ -142,15 +147,19 @@ abstract class Http extends Query
     }
 
     /**
-     * @return resource cURL multi handle
+     * @return ResponseWrapper
      */
     public function execute()
     {
         return $this->getParent()->runQuery();
     }
 
+    /**
+     * @return ResponseWrapper
+     */
     private function runQuery()
     {
+        $result = $this->getResponseWrapper();
         $this->success = $this->success === null ? true : $this->success;
         $multi_handle = $this->getRequestMulti();
         $handles = $this->getResponses(function (self $query) {
@@ -160,6 +169,7 @@ abstract class Http extends Query
         foreach ($handles as $handle) {
             if (\CURLM_OK === $error = curl_multi_add_handle($multi_handle, $handle)) {
                 $need_exec = true;
+                $result->addHandle($handle);
             } else {
                 $this->success = false;
             }
@@ -171,7 +181,12 @@ abstract class Http extends Query
             }
         }
 
-        return $multi_handle;
+        return $result->setMultiHandle($multi_handle);
+    }
+
+    private function getResponseWrapper()
+    {
+        return $this->wrapper ? : $this->wrapper = new ResponseWrapper();
     }
 
     /**
