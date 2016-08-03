@@ -2,10 +2,11 @@
 
 namespace Imhonet\Connection\Query\Memcached;
 
+use Imhonet\Connection\Query\ICacheSetQuery;
 use Imhonet\Connection\Query\Query;
 use Respect\Validation\Validator;
 
-class Set extends Query
+class Set extends Query implements ICacheSetQuery
 {
     private $data = array();
     private $expire = 0;
@@ -24,7 +25,7 @@ class Set extends Query
     }
 
     /**
-     * @param int $value
+     * @param int $expire
      */
     public function setExpire($value)
     {

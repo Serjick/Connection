@@ -2,9 +2,10 @@
 
 namespace Imhonet\Connection\Query\Memcached;
 
+use Imhonet\Connection\Query\ICacheGetQuery;
 use Imhonet\Connection\Query\Query;
 
-class Get extends Query
+class Get extends Query implements ICacheGetQuery
 {
     private $keys;
 

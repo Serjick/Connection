@@ -5,10 +5,12 @@ namespace Imhonet\Connection\DataFormat\Arr\PDO;
 use Imhonet\Connection\DataFormat\IArr;
 use Imhonet\Connection\DataFormat\IDecorator;
 use Imhonet\Connection\DataFormat\TDecorator;
+use Imhonet\Connection\Cache\ICachable;
 
-class Rekey implements IArr, IDecorator
+class Rekey implements IArr, IDecorator, ICachable
 {
     use TDecorator;
+
 
     /**
      * @var \PDOStatement
@@ -98,5 +100,10 @@ class Rekey implements IArr, IDecorator
     protected function getDataRaw()
     {
         return $this->data;
+    }
+
+    public function getCacheKey()
+    {
+        return get_class($this) . '_n' . $this->key_name . '_v' . $this->value_name . '_g' . ($this->grouping ?  '1' : '0');
     }
 }

@@ -59,4 +59,23 @@ interface IQuery extends \SeekableIterator, IErrorable
      * @return string
      */
     public function getDebugInfo($type = self::INFO_TYPE_QUERY);
+
+    /**
+     * @return string
+     */
+    public function getCacheKey();
+
+    /**
+     */
+    public function disableQuery();
+
+    /**
+     * @return int|null
+     */
+    public function getExpire();
+
+       /**
+     * @return string[]|null
+     */
+    public function getTags();
 }
