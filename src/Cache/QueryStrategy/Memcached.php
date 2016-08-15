@@ -3,9 +3,9 @@
 namespace Imhonet\Connection\Cache\QueryStrategy;
 
 use Imhonet\Connection\Resource\IResource;
-use Imhonet\Connection\Query\Memcached;
+use Imhonet\Connection\Query\Memcached as Query;
 
-class MemcachedQueryFetcherStrategy implements IQueryFetcherStrategy
+class Memcached implements IQueryStrategy
 {
     private $resource;
 
@@ -16,11 +16,11 @@ class MemcachedQueryFetcherStrategy implements IQueryFetcherStrategy
 
     public function createGetQuery()
     {
-        return (new Memcached\Get())->setResource($this->resource);
+        return (new Query\Get())->setResource($this->resource);
     }
 
     public function createSetQuery()
     {
-        return (new Memcached\Set())->setResource($this->resource);
+        return (new Query\Set())->setResource($this->resource);
     }
 }

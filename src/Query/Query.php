@@ -137,9 +137,13 @@ abstract class Query implements IQuery
     /**
      * @inheritDoc
      */
-    public function disableQuery()
+    public function disable($state = true)
     {
-        $this->disable = true;
+        if (is_bool($state)) {
+            $this->disable = $state;
+        }
+
+        return $this->disable;
     }
 
     /**
@@ -155,6 +159,6 @@ abstract class Query implements IQuery
      */
     public function getTags()
     {
-        return null;
+        return [];
     }
 }

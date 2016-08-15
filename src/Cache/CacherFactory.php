@@ -2,7 +2,6 @@
 
 namespace Imhonet\Connection\Cache;
 
-use Imhonet\Connection\Resource\IResource;
 use Imhonet\Connection\Query\Memcached;
 use Imhonet\Connection\Query;
 use Imhonet\Connection\Cache\QueryStrategy;
@@ -16,7 +15,7 @@ class CacherFactory
             ->setPort($port)
             ->getResource(\Imhonet\Connection\Resource\Factory::TYPE_MEMCACHED);
         
-        $main_query_fetcher = new QueryStrategy\MemcachedQueryFetcherStrategy($resource);
+        $main_query_fetcher = new QueryStrategy\Memcached($resource);
 
         $tag_query_fetcher = null;
 
@@ -26,7 +25,7 @@ class CacherFactory
                 ->setPort($tags_port)
                 ->getResource(\Imhonet\Connection\Resource\Factory::TYPE_MEMCACHED);
 
-            $tag_query_fetcher = new QueryStrategy\MemcachedQueryFetcherStrategy($tags_resource);
+            $tag_query_fetcher = new QueryStrategy\Memcached($tags_resource);
         }
 
         return new Cacher($main_query_fetcher, $tag_query_fetcher);
