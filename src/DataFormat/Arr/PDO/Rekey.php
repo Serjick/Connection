@@ -104,6 +104,6 @@ class Rekey implements IArr, IDecorator, ICachable
 
     public function getCacheKey()
     {
-        return get_class($this) . '_n' . $this->key_name . '_v' . $this->value_name . '_g' . ($this->grouping ?  '1' : '0');
+        return md5(get_class($this) . json_encode([$this->key_name, $this->value_name, $this->grouping]));
     }
 }
