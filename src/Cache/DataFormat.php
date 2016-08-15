@@ -80,7 +80,9 @@ class DataFormat implements IDataFormat, IDecorator, IMulti, IErrorable, ICachab
             $result = $this->formatter instanceof IErrorable ? $this->formatter->getErrorCode() : 0;
         } else {
             $key = $this->getIndex();
-            $result = $this->data[$key] instanceof CacheException ? IQuery::STATUS_TEMPORARY_UNAVAILABLE : 0;
+            $result = $this->data[$key] instanceof CacheException
+                ? IQuery::STATUS_ERROR | IQuery::STATUS_TEMPORARY_UNAVAILABLE
+                : 0;
         }
 
         return $result;
