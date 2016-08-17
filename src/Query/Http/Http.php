@@ -290,6 +290,14 @@ abstract class Http extends Query
         return (int) $this->isError();
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getCacheKey()
+    {
+        return md5($this->url . json_encode($this->params) . json_encode($this->getHeaders()));
+    }
+
     protected function getDebugInfoCurrent($type = self::INFO_TYPE_QUERY)
     {
         switch ($type) {
