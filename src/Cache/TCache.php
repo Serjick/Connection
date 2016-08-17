@@ -81,7 +81,7 @@ trait TCache
         $data = [];
         foreach ($this->getQuery() as $query_id => $query) {
             if ($this->isCachedQuery($query)) {
-                $key = $this->generateCacheKey($this->query);
+                $key = $this->generateCacheKey($query);
 
                 try {
                     $value = $this->cacher->get($key);
@@ -111,7 +111,7 @@ trait TCache
 
                 if (!$this->isCachedQuery($query)) {
                     $key = $this->generateCacheKey($query);
-                    $success = $this->cacher->set($key, $result, $query->getTags(), $query->getExpire());
+                    $success = $this->cacher->set($key, $result, $query->getCacheTags(), $query->getCacheExpire());
                     assert($success === true);
                 }
 
@@ -145,7 +145,7 @@ trait TCache
                 } else {
                     $this->cacher->lock([$key]);
                     $result = $f();
-                    $success = $this->cacher->set($key, $result, $this->query->getTags(), $this->query->getExpire());
+                    $success = $this->cacher->set($key, $result, $this->query->getCacheTags(), $this->query->getCacheExpire());
                     assert($success === true);
                 }
 
@@ -175,16 +175,12 @@ trait TCache
     {
         $keys = array();
 
-        $current_query_position = $this->query->key(); //@todo remove after nested iterations implementation
-
         foreach ($this->query as $query) {
-            $tags = $query->getTags();
+            $tags = $query->getCacheTags();
             $keys[ $this->generateCacheKey($query) ] = $tags;
             $keys[ $this->generateCacheKey($query, ICacher::TYPE_COUNT) ] = $tags;
             $keys[ $this->generateCacheKey($query, ICacher::TYPE_COUNT_TOTAL) ] = $tags;
         }
-
-        $this->query->seek($current_query_position); //@todo remove after nested iterations implementation
 
         return $keys;
     }
