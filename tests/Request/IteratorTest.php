@@ -120,6 +120,11 @@ class IteratorTest extends \PHPUnit_Framework_TestCase
             'disableQuery',
             'getExpire',
             'getTags',
+            'setCacheExpire',
+            'getCacheExpire',
+            'setCacheTags',
+            'getCacheTags',
+            'disable',
         ));
 
         return $query;
