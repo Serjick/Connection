@@ -118,8 +118,9 @@ class DataFormat implements IDataFormat, IDecorator, IMulti, IErrorable, ICachab
                 $result = $this->formatter->moveNext();
             } else {
                 next($this->data);
+                $result = $this->getIndexCached() !== null;
 
-                if ($this->getIndexCached() === null) {
+                if (!$result) {
                     $result = $this->getIndexFormatter() !== null;
                     $this->use_formatter = true;
                 }
