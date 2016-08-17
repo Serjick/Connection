@@ -58,7 +58,7 @@ trait TImmutable
         $result = array();
 
         foreach ($this->getParent()->childs as $child) {
-            if ($filter === null || $filter($child)) {
+            if (!$child->disable(null) && ($filter === null || $filter($child))) {
                 $result[] = $child->getResponse();
             }
         }
@@ -208,6 +208,28 @@ trait TImmutable
         return $result;
     }
 
+    public function getCacheExpire()
+    {
+        try {
+            $result = $this->getQueryCurrent()->getCacheExpireCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = null;
+        }
+
+        return $result;
+    }
+
+    public function getCacheTags()
+    {
+        try {
+            $result = $this->getQueryCurrent()->getCacheTagsCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = [];
+        }
+
+        return $result;
+    }
+
     abstract protected function getResponse();
     /** @see IQuery::getErrorCode */
     abstract protected function getErrorCodeCurrent();
@@ -219,4 +241,8 @@ trait TImmutable
     abstract protected function getLastIdCurrent();
     /** @see IQuery::getDebugInfo */
     abstract protected function getDebugInfoCurrent($type = IQuery::INFO_TYPE_QUERY);
+    /** @see IQuery::getCacheExpire */
+    abstract protected function getCacheExpireCurrent();
+    /** @see IQuery::getCacheTags */
+    abstract protected function getCacheTagsCurrent();
 }
