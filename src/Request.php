@@ -94,15 +94,12 @@ class Request implements \Iterator, IErrorable
     protected function getQuery()
     {
         if (!$this->is_query_ready) {
-            $current_query_position = $this->query->key(); //@todo remove after nested iterations implementation
-
             foreach ($this->query as $query) {
                 if ($this->isCachable()) {
                     $this->prepareQueryCache($query);
                 }
             }
 
-            $this->query->seek($current_query_position); //@todo remove after nested iterations implementation
             $this->is_query_ready = true;
         }
 
