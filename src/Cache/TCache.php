@@ -105,7 +105,7 @@ trait TCache
     private function decorateDataCache(\Closure $f)
     {
         if ($this->isCachable()) {
-            $f = function() use($f) {
+            $f = function () use ($f) {
                 $result = $f();
                 $query = $this->query->current();
 
@@ -132,7 +132,7 @@ trait TCache
     private function decorateCountCache(\Closure $f, $type = ICacher::TYPE_COUNT)
     {
         if ($this->isCachable()) {
-            $f = function() use($f, $type) {
+            $f = function () use ($f, $type) {
                 $key = $this->generateCacheKey($this->query->current(), $type);
 
                 if ($this->cacher->isCached($key)) {

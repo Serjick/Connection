@@ -119,7 +119,7 @@ class Request implements \Iterator, IErrorable
      */
     public function getData()
     {
-        $f = $this->decorateDataCache(function() {
+        $f = $this->decorateDataCache(function () {
             $result = $this->getFormater()->formatData();
             $this->query->seek($this->key());
 
@@ -134,7 +134,7 @@ class Request implements \Iterator, IErrorable
      */
     public function getValue()
     {
-        $f = $this->decorateDataCache(function() {
+        $f = $this->decorateDataCache(function () {
             $result = $this->getFormater()->formatValue();
             $this->query->seek($this->key());
 
@@ -157,7 +157,7 @@ class Request implements \Iterator, IErrorable
      */
     public function getCount()
     {
-        $f = $this->decorateCountCache(function() {
+        $f = $this->decorateCountCache(function () {
             return $this->query->getCount();
         });
 
@@ -169,7 +169,7 @@ class Request implements \Iterator, IErrorable
      */
     public function getCountTotal()
     {
-        $f = $this->decorateCountCache(function() {
+        $f = $this->decorateCountCache(function () {
             return $this->query->getCountTotal();
         }, ICacher::TYPE_COUNT_TOTAL);
 
