@@ -62,14 +62,26 @@ interface IQuery extends \SeekableIterator, IErrorable, ICachable
     public function getDebugInfo($type = self::INFO_TYPE_QUERY);
 
     /**
+     * @param int $expire
+     * @return self
+     */
+    public function setCacheExpire($expire);
+
+    /**
      * @return int|null
      */
-    public function getExpire();
+    public function getCacheExpire();
+
+    /**
+     * @param string[] $tags
+     * @return self
+     */
+    public function setCacheTags(array $tags);
 
     /**
      * @return string[]
      */
-    public function getTags();
+    public function getCacheTags();
 
     /**
      * @param bool|null $state
