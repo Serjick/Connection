@@ -5,26 +5,34 @@ namespace Imhonet\Connection\Cache;
 use Imhonet\Connection\Query\Memcached;
 use Imhonet\Connection\Query;
 use Imhonet\Connection\Cache\QueryStrategy;
+use Imhonet\Connection\Resource;
 
 class CacherFactory
 {
-    public static function instanceCacherMemcache($host, $port, $tags_host = null, $tags_port = null)
+    public static function getInstanceMemcached($host, $port, $tags_host = null, $tags_port = null)
     {
-        $resource = \Imhonet\Connection\Resource\Factory::getInstance()
+        $resource = Resource\Factory::getInstance()
             ->setHost($host)
             ->setPort($port)
-            ->getResource(\Imhonet\Connection\Resource\Factory::TYPE_MEMCACHED);
-        
-        $main_query_fetcher = new QueryStrategy\Memcached($resource);
-
-        $tag_query_fetcher = null;
+            ->getResource(Resource\Factory::TYPE_MEMCACHED);
+        $tags_resource = null;
 
         if ($tags_host !== null && $tags_port !== null) {
-            $tags_resource = \Imhonet\Connection\Resource\Factory::getInstance()
+            $tags_resource = Resource\Factory::getInstance()
                 ->setHost($tags_host)
                 ->setPort($tags_port)
-                ->getResource(\Imhonet\Connection\Resource\Factory::TYPE_MEMCACHED);
+                ->getResource(Resource\Factory::TYPE_MEMCACHED);
+        }
 
+        return self::getInstanceMemcachedResource($resource, $tags_resource);
+    }
+
+    public static function getInstanceMemcachedResource(Resource\IResource $resource, Resource\IResource $tags_resource = null)
+    {
+        $main_query_fetcher = new QueryStrategy\Memcached($resource);
+        $tag_query_fetcher = null;
+
+        if ($tags_resource !== null) {
             $tag_query_fetcher = new QueryStrategy\Memcached($tags_resource);
         }
 
