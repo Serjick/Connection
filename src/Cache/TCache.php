@@ -111,7 +111,8 @@ trait TCache
 
                 if (!$this->isCachedQuery($query)) {
                     $key = $this->generateCacheKey($query);
-                    $success = $this->cacher->set($key, $result, $query->getCacheTags(), $query->getCacheExpire());
+                    $success = !$this->getErrorCode()
+                        && $this->cacher->set($key, $result, $query->getCacheTags(), $query->getCacheExpire());
                     assert($success === true);
                 }
 
@@ -125,6 +126,7 @@ trait TCache
     /**
      * @todo data, count and count_total caches sync
      * @todo atomic multi lock at first call for multi queries
+     * @todo check for errors
      * @param \Closure $f
      * @param string $type
      * @return \Closure
@@ -150,6 +152,25 @@ trait TCache
                 }
 
                 return $result;
+            };
+        }
+
+        return $f;
+    }
+
+    /**
+     * @todo handle cacher errors
+     * @todo support for counts err codes
+     * @param \Closure $f
+     * @return \Closure
+     */
+    private function decorateErrorCodeCache(\Closure $f)
+    {
+        if ($this->isCachable()) {
+            $f = function () use ($f) {
+                $key = $this->generateCacheKey($this->query->current());
+
+                return $this->cacher->isCached($key) ? $this->getErrorCodeFormatter() : $f();
             };
         }
 
@@ -199,5 +220,6 @@ trait TCache
      * @return IQuery[]
      */
     abstract protected function getQuery();
-    abstract public function getErrorCode();
+    abstract protected function getErrorCode();
+    abstract protected function getErrorCodeFormatter();
 }

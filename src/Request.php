@@ -149,7 +149,21 @@ class Request implements \Iterator, IErrorable
      */
     public function getErrorCode()
     {
-        return $this->query->getErrorCode() | ($this->isFormaterErrorable() ? $this->getFormater()->getErrorCode() : 0);
+        $f = $this->decorateErrorCodeCache(function () {
+            return $this->getErrorCodeQuery() | ($this->getErrorCodeFormatter());
+        });
+
+        return $f();
+    }
+
+    private function getErrorCodeQuery()
+    {
+        return $this->query->getErrorCode();
+    }
+
+    protected function getErrorCodeFormatter()
+    {
+        return $this->isFormaterErrorable() ? $this->getFormater()->getErrorCode() : 0;
     }
 
     /**
