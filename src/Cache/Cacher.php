@@ -16,7 +16,13 @@ class Cacher implements ICacher
     private $cached_data = array();
     private $cached_tags = array();
 
+    /**
+     * @type IQueryStrategy
+     */
     private $storage;
+    /**
+     * @type IQueryStrategy
+     */
     private $storage_tags;
 
     private $expire = self::EXPIRE_DEFAULT;
@@ -27,8 +33,7 @@ class Cacher implements ICacher
 
     public function __construct(IQueryStrategy $storage, IQueryStrategy $storage_tags = null)
     {
-        $this->storage = $storage;
-        $this->storage_tags = $storage_tags ? $storage_tags : $storage;
+        $this->setStorages($storage, $storage_tags);
     }
 
     /**
@@ -282,5 +287,34 @@ class Cacher implements ICacher
     private function getTimestamp()
     {
         return $this->timestamp ? : $this->timestamp = microtime(true);
+    }
+
+    /**
+     * @return IQueryStrategy
+     */
+    public function getStorage()
+    {
+        return $this->storage;
+    }
+
+    /**
+     * @return IQueryStrategy
+     */
+    public function getStorageTags()
+    {
+        return $this->storage_tags;
+    }
+
+    /**
+     * @param IQueryStrategy $storage
+     * @param IQueryStrategy $storage_tags
+     * @return Cacher
+     */
+    public function setStorages(IQueryStrategy $storage, IQueryStrategy $storage_tags = null)
+    {
+        $this->storage = $storage;
+        $this->storage_tags = $storage_tags ? $storage_tags : $storage;
+
+        return $this;
     }
 }
