@@ -94,4 +94,17 @@ class Get extends Query implements IGet
     public function getLastId()
     {
     }
+
+    public function getDebugInfo($type = self::INFO_TYPE_QUERY)
+    {
+        switch ($type) {
+            case self::INFO_TYPE_QUERY:
+                $result = implode("\t", $this->keys);
+                break;
+            default:
+                $result = parent::getDebugInfo($type);
+        }
+
+        return isset($result) ? (string) $result : '';
+    }
 }

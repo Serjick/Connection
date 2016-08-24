@@ -111,4 +111,17 @@ class Set extends Query implements ISet
     public function getLastId()
     {
     }
+
+    public function getDebugInfo($type = self::INFO_TYPE_QUERY)
+    {
+        switch ($type) {
+            case self::INFO_TYPE_QUERY:
+                $result = implode("\t", array_keys($this->data));
+                break;
+            default:
+                $result = parent::getDebugInfo($type);
+        }
+
+        return isset($result) ? (string) $result : '';
+    }
 }
