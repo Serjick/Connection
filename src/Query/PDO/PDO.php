@@ -77,7 +77,7 @@ abstract class PDO extends Query
      */
     public function execute()
     {
-        return $this->getResponse();
+        return $this->disable ? false : $this->getResponse();
     }
 
     protected function getResponse()
@@ -202,5 +202,14 @@ abstract class PDO extends Query
         }
 
         return $result;
+    }
+
+    /**
+     * @todo use resource
+     * @inheritDoc
+     */
+    public function getCacheKey()
+    {
+        return md5($this->getStatement() . json_encode($this->getParams()));
     }
 }

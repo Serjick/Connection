@@ -3,8 +3,9 @@
 namespace Imhonet\Connection\DataFormat\Arr\PDO;
 
 use Imhonet\Connection\DataFormat\IArr;
+use Imhonet\Connection\Cache\ICachable;
 
-class Group implements IArr
+class Group implements IArr, ICachable
 {
     /**
      * @var \PDOStatement|bool
@@ -67,5 +68,10 @@ class Group implements IArr
     public function formatValue()
     {
         return null;
+    }
+
+    public function getCacheKey()
+    {
+        return get_class($this) . '_' . implode('_', $this->groups);
     }
 }

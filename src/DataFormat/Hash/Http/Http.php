@@ -4,8 +4,9 @@ namespace Imhonet\Connection\DataFormat\Hash\Http;
 
 use Imhonet\Connection\DataFormat\IMulti;
 use Imhonet\Connection\IErrorable;
+use Imhonet\Connection\Cache\ICachable;
 
-abstract class Http implements IMulti, IErrorable
+abstract class Http implements IMulti, IErrorable, ICachable
 {
     /** @type resource */
     private $handle;
@@ -141,5 +142,13 @@ abstract class Http implements IMulti, IErrorable
         $this->response = null;
 
         return array_sum($this->todo_count) > 0 || $this->getCountRunning();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCacheKey()
+    {
+        return md5(get_class($this));
     }
 }

@@ -16,6 +16,13 @@ abstract class Query implements IQuery
      */
     protected $resource;
 
+    protected $next = true;
+    
+    protected $disable = false;
+
+    private $expire;
+    private $tags = [];
+
     /**
      * @param IResource $resource
      * @return $this
@@ -68,7 +75,7 @@ abstract class Query implements IQuery
      */
     public function current()
     {
-        // TODO: Implement current() method.
+        return $this;
     }
 
     /**
@@ -76,7 +83,7 @@ abstract class Query implements IQuery
      */
     public function key()
     {
-        // TODO: Implement key() method.
+        return 0;
     }
 
     /**
@@ -84,7 +91,7 @@ abstract class Query implements IQuery
      */
     public function next()
     {
-        // TODO: Implement next() method.
+        $this->next = false;
     }
 
     /**
@@ -92,7 +99,7 @@ abstract class Query implements IQuery
      */
     public function rewind()
     {
-        // TODO: Implement rewind() method.
+        $this->next = true;
     }
 
     /**
@@ -100,7 +107,7 @@ abstract class Query implements IQuery
      */
     public function valid()
     {
-        // TODO: Implement valid() method.
+        return $this->next;
     }
 
     /**
@@ -120,5 +127,71 @@ abstract class Query implements IQuery
         }
 
         return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCacheKey()
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function disable($state = true)
+    {
+        if (is_bool($state)) {
+            $this->disable = $state;
+        }
+
+        return $this->disable;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCacheExpire($expire)
+    {
+        $this->expire = $expire;
+
+        return $this;
+    }
+
+    final protected function getCacheExpireCurrent()
+    {
+        return $this->expire;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCacheExpire()
+    {
+        return $this->getCacheExpireCurrent();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCacheTags(array $tags)
+    {
+        $this->tags = array_merge($this->tags, $tags);
+
+        return $this;
+    }
+
+    final protected function getCacheTagsCurrent()
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCacheTags()
+    {
+        return $this->getCacheTagsCurrent();
     }
 }

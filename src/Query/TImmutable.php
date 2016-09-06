@@ -2,6 +2,9 @@
 
 namespace Imhonet\Connection\Query;
 
+/**
+ * @implements \SeekableIterator
+ */
 trait TImmutable
 {
     private $query_id = 0;
@@ -13,6 +16,11 @@ trait TImmutable
      * @type IQuery[]|self[]
      */
     private $childs = array();
+
+    /**
+     * @var int[] stack of indexes for nested iterations
+     */
+    protected $iterations = array();
 
     /**
      * @return self|$this
@@ -50,7 +58,7 @@ trait TImmutable
         $result = array();
 
         foreach ($this->getParent()->childs as $child) {
-            if ($filter === null || $filter($child)) {
+            if (!$child->disable(null) && ($filter === null || $filter($child))) {
                 $result[] = $child->getResponse();
             }
         }
@@ -59,14 +67,8 @@ trait TImmutable
     }
 
     /**
-     * Seeks to a position
-     * @link http://php.net/manual/en/seekableiterator.seek.php
-     * @param int $position <p>
-     * The position to seek to.
-     * </p>
-     * @return void
-     * @throw \OutOfBoundsException
-     * @since 5.1.0
+     * @inheritDoc
+     * @see \SeekableIterator::seek
      */
     public function seek($position)
     {
@@ -78,11 +80,74 @@ trait TImmutable
     }
 
     /**
+     * @inheritDoc
+     * @see IQuery::current
+     */
+    public function current()
+    {
+        try {
+            $result = $this->getQueryCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = $this->getParent();
+        }
+
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     * @see \SeekableIterator::key
+     */
+    public function key()
+    {
+        return $this->getParent()->query_id;
+    }
+
+    /**
+     * @inheritDoc
+     * @see \SeekableIterator::next
+     */
+    public function next()
+    {
+        ++$this->getParent()->query_id;
+    }
+
+    /**
+     * @inheritDoc
+     * @see \SeekableIterator::rewind
+     */
+    public function rewind()
+    {
+        $this->getParent()->iterations[] = $this->key();
+        $this->seek(0);
+    }
+
+    /**
+     * @inheritDoc
+     * @see \SeekableIterator::valid
+     */
+    public function valid()
+    {
+        try {
+            $result = (bool) $this->getQueryCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = false;
+
+            // restore previous iteration state if exists
+            if (isset($this->getParent()->iterations[0])) {
+                $this->seek(array_pop($this->getParent()->iterations));
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * @throw \OutOfBoundsException
      */
     private function getQueryCurrent()
     {
-        $query_id = $this->getParent()->query_id;
+        $query_id = $this->key();
         $this->seek($query_id);
 
         return $this->getParent()->childs[$query_id];
@@ -143,6 +208,28 @@ trait TImmutable
         return $result;
     }
 
+    public function getCacheExpire()
+    {
+        try {
+            $result = $this->getQueryCurrent()->getCacheExpireCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = null;
+        }
+
+        return $result;
+    }
+
+    public function getCacheTags()
+    {
+        try {
+            $result = $this->getQueryCurrent()->getCacheTagsCurrent();
+        } catch (\OutOfBoundsException $e) {
+            $result = [];
+        }
+
+        return $result;
+    }
+
     abstract protected function getResponse();
     /** @see IQuery::getErrorCode */
     abstract protected function getErrorCodeCurrent();
@@ -154,4 +241,8 @@ trait TImmutable
     abstract protected function getLastIdCurrent();
     /** @see IQuery::getDebugInfo */
     abstract protected function getDebugInfoCurrent($type = IQuery::INFO_TYPE_QUERY);
+    /** @see IQuery::getCacheExpire */
+    abstract protected function getCacheExpireCurrent();
+    /** @see IQuery::getCacheTags */
+    abstract protected function getCacheTagsCurrent();
 }

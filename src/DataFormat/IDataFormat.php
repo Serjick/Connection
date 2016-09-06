@@ -6,7 +6,7 @@ interface IDataFormat
 {
     /**
      * @param $data
-     * @return $this
+     * @return self
      */
     public function setData($data);
 

@@ -3,8 +3,9 @@
 namespace Imhonet\Connection\Query\Memcached;
 
 use Imhonet\Connection\Query\Query;
+use Imhonet\Connection\Cache\Query\IGet;
 
-class Get extends Query
+class Get extends Query implements IGet
 {
     private $keys;
 
@@ -92,5 +93,18 @@ class Get extends Query
      */
     public function getLastId()
     {
+    }
+
+    public function getDebugInfo($type = self::INFO_TYPE_QUERY)
+    {
+        switch ($type) {
+            case self::INFO_TYPE_QUERY:
+                $result = implode("\t", $this->keys);
+                break;
+            default:
+                $result = parent::getDebugInfo($type);
+        }
+
+        return isset($result) ? (string) $result : '';
     }
 }

@@ -6,13 +6,19 @@ use Imhonet\Connection\DataFormat\IDataFormat;
 use Imhonet\Connection\DataFormat\IMulti;
 use Imhonet\Connection\Query\IQuery;
 use Imhonet\Connection\Resource\IResource;
+use Imhonet\Connection\Cache\TCache;
+use Imhonet\Connection\Cache\ICacher;
+use Imhonet\Connection\Cache\ICachable;
 
 class Request implements \Iterator, IErrorable
 {
+    use TCache;
+
     /**
-     * @var IQuery
+     * @var IQuery|IQuery[]
      */
     private $query;
+    private $is_query_ready = false;
 
     /**
      * @var IResource
@@ -20,7 +26,7 @@ class Request implements \Iterator, IErrorable
     protected $resource;
 
     /**
-     * @var IDataFormat|IMulti
+     * @var IDataFormat|IMulti|IErrorable|ICachable
      */
     private $format;
     private $is_format_ready = false;
@@ -30,9 +36,11 @@ class Request implements \Iterator, IErrorable
 
     private $is_valid_iteration = true;
 
+    private $error = array();
+
     /**
      * @param IQuery $query
-     * @param IDataFormat|IMulti $format
+     * @param IDataFormat|IMulti|IErrorable|ICachable $format
      */
     public function __construct(IQuery $query, IDataFormat $format)
     {
@@ -65,11 +73,37 @@ class Request implements \Iterator, IErrorable
     private function getResponse($cached = true)
     {
         if (!$cached || !$this->hasResponse()) {
-            $this->response = $this->query->execute();
+            $this->beforeRequestData();
+            $this->response = $this->getQuery()->execute();
             $this->has_response = true;
         }
 
         return $this->response;
+    }
+
+    private function beforeRequestData()
+    {
+        if ($this->isCachable()) {
+            $this->prepareCache();
+        }
+    }
+
+    /**
+     * @todo support repeatable queries
+     */
+    protected function getQuery()
+    {
+        if (!$this->is_query_ready) {
+            foreach ($this->query as $query) {
+                if ($this->isCachable()) {
+                    $this->prepareQueryCache($query);
+                }
+            }
+
+            $this->is_query_ready = true;
+        }
+
+        return $this->query;
     }
 
     /**
@@ -85,10 +119,14 @@ class Request implements \Iterator, IErrorable
      */
     public function getData()
     {
-        $result = $this->getFormater()->formatData();
-        $this->query->seek($this->key());
+        $f = $this->decorateDataCache(function () {
+            $result = $this->getFormater()->formatData();
+            $this->query->seek($this->key());
 
-        return $result;
+            return $result;
+        });
+
+        return $f();
     }
 
     /**
@@ -96,10 +134,14 @@ class Request implements \Iterator, IErrorable
      */
     public function getValue()
     {
-        $result = $this->getFormater()->formatValue();
-        $this->query->seek($this->key());
+        $f = $this->decorateDataCache(function () {
+            $result = $this->getFormater()->formatValue();
+            $this->query->seek($this->key());
 
-        return $result;
+            return $result;
+        });
+
+        return $f();
     }
 
     /**
@@ -107,7 +149,21 @@ class Request implements \Iterator, IErrorable
      */
     public function getErrorCode()
     {
-        return $this->query->getErrorCode() | ($this->isFormaterErrorable() ? $this->getFormater()->getErrorCode() : 0);
+        $f = $this->decorateErrorCodeCache(function () {
+            return $this->getErrorCodeQuery() | ($this->getErrorCodeFormatter());
+        });
+
+        return $f();
+    }
+
+    private function getErrorCodeQuery()
+    {
+        return $this->query->getErrorCode();
+    }
+
+    protected function getErrorCodeFormatter()
+    {
+        return $this->isFormaterErrorable() ? $this->getFormater()->getErrorCode() : 0;
     }
 
     /**
@@ -115,7 +171,11 @@ class Request implements \Iterator, IErrorable
      */
     public function getCount()
     {
-        return $this->query->getCount();
+        $f = $this->decorateCountCache(function () {
+            return $this->query->getCount();
+        });
+
+        return $f();
     }
 
     /**
@@ -123,7 +183,11 @@ class Request implements \Iterator, IErrorable
      */
     public function getCountTotal()
     {
-        return $this->query->getCountTotal();
+        $f = $this->decorateCountCache(function () {
+            return $this->query->getCountTotal();
+        }, ICacher::TYPE_COUNT_TOTAL);
+
+        return $f();
     }
 
     /**
@@ -140,16 +204,17 @@ class Request implements \Iterator, IErrorable
     private function getFormater()
     {
         if (!$this->is_format_ready) {
-            $this->format = $this->prepareFormat();
+            $format = $this->format->setData($this->getResponse());
+
+            if ($this->isCachable()) {
+                $format = $this->prepareFormatCache()->setFormatter($format);
+            }
+
+            $this->format = $format;
             $this->is_format_ready = true;
         }
 
         return $this->format;
-    }
-
-    private function prepareFormat()
-    {
-        return $this->format->setData($this->getResponse());
     }
 
     private function isFormaterIterable()
@@ -210,6 +275,7 @@ class Request implements \Iterator, IErrorable
         return array(
             'query' => $this->query->getDebugInfo(),
             'error' => $this->query->getDebugInfo(IQuery::INFO_TYPE_ERROR),
+            'cache' => $this->generateCacheKey($this->query->current()),
         );
     }
 }
