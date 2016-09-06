@@ -205,10 +205,11 @@ abstract class PDO extends Query
     }
 
     /**
+     * @todo use resource
      * @inheritDoc
      */
     public function getCacheKey()
     {
-        return md5($this->getStatement() . implode('_', $this->getParams()));
+        return md5($this->getStatement() . json_encode($this->getParams()));
     }
 }

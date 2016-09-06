@@ -3,13 +3,10 @@
 namespace Imhonet\Connection\DataFormat\Arr\PDO;
 
 use Imhonet\Connection\DataFormat\IArr;
-use Imhonet\Connection\DataFormat\TCacheKey;
 use Imhonet\Connection\Cache\ICachable;
 
 class Get implements IArr, ICachable
 {
-    use TCacheKey;
-
     /**
      * @var \PDOStatement
      */
@@ -36,5 +33,10 @@ class Get implements IArr, ICachable
 
     public function formatValue()
     {
+    }
+
+    public function getCacheKey()
+    {
+        return md5(get_class($this));
     }
 }

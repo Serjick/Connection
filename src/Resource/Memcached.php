@@ -19,11 +19,7 @@ class Memcached implements IResource
     public function getHandle()
     {
         if (!$this->resource) {
-            $this->resource = $this->isPersistent() ? new \Memcached($this->getPersistentId()) : new \Memcached();
-
-            if (!$this->resource->getServerList()) {
-                $this->resource->addServers($this->getServers());
-            }
+            $this->resource = $this->connect();
 
             if ($options = $this->getOptions()) {
                 $this->resource->setOptions($options);
@@ -31,6 +27,17 @@ class Memcached implements IResource
         }
 
         return $this->resource;
+    }
+
+    protected function connect()
+    {
+        $resource = $this->isPersistent() ? new \Memcached($this->getPersistentId()) : new \Memcached();
+
+        if (!$resource->getServerList()) {
+            $resource->addServers($this->getServers());
+        }
+
+        return $resource;
     }
 
     private function isPersistent()

@@ -2,15 +2,15 @@
 
 namespace Imhonet\Connection\Cache\QueryStrategy;
 
-interface IQueryFetcherStrategy
+interface IQueryStrategy
 {
     /**
-     * @return ICacheGetQuery
+     * @return \Imhonet\Connection\Cache\Query\IGet
      */
     public function createGetQuery();
 
     /**
-     * @return ICacheSetQuery
+     * @return \Imhonet\Connection\Cache\Query\ISet
      */
     public function createSetQuery();
 }

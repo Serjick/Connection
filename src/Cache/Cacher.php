@@ -3,37 +3,37 @@
 namespace Imhonet\Connection\Cache;
 
 use Imhonet\Connection\Query;
-use Imhonet\Connection\Cache\QueryStrategy;
+use Imhonet\Connection\Cache\QueryStrategy\IQueryStrategy;
 
 class Cacher implements ICacher
 {
-    const DATA_EXPIRE = 31536000; // год
-    const TAGS_EXPIRE = 31536000;
-    const DEFAULT_EXPIRE = 600;
+    const EXPIRE_DEFAULT = 600;
+    const EXPIRE_LOCK = 0.5;
+
+    const ERR_RACE_CONDITION = 'Race condition exception!';
 
     private $errors = array();
     private $cached_data = array();
     private $cached_tags = array();
 
-    private $main_query_fetcher;
-    private $tags_query_fetcher;
-
-    private $expire = null;
-    private $default_tags = array();
-
-    public function __construct(QueryStrategy\IQueryFetcherStrategy $main_query_fetcher, QueryStrategy\IQueryFetcherStrategy $tag_query_fetcher = null)
-    {
-        $this->main_query_fetcher = $main_query_fetcher;
-        $this->tags_query_fetcher = $tag_query_fetcher ? $tag_query_fetcher : $main_query_fetcher;
-    }
-
     /**
-     * @param mixed $object
-     * @return bool
+     * @type IQueryStrategy
      */
-    public function isCacheable($object)
+    private $storage;
+    /**
+     * @type IQueryStrategy
+     */
+    private $storage_tags;
+
+    private $expire = self::EXPIRE_DEFAULT;
+    private $tags_common = array();
+
+    private $timestamp;
+
+
+    public function __construct(IQueryStrategy $storage, IQueryStrategy $storage_tags = null)
     {
-        return $object instanceof ICachable;
+        $this->setStorages($storage, $storage_tags);
     }
 
     /**
@@ -43,6 +43,11 @@ class Cacher implements ICacher
     public function isCached($key)
     {
         return array_key_exists($key, $this->cached_data);
+    }
+
+    public function isLocked($key)
+    {
+        return isset($this->errors[$key]) && $this->errors[$key] === self::ERR_RACE_CONDITION;
     }
 
     /**
@@ -56,33 +61,28 @@ class Cacher implements ICacher
             throw new CacheException($this->errors[$key]);
         }
 
-        return array_key_exists($key, $this->cached_data) ? $this->cached_data[$key] : null;
+        return $this->isCached($key) ? $this->cached_data[$key] : null;
     }
 
     /**
-     * @param
-     * @return int|null
+     * @inheritdoc
      */
     public function set($key, $data, $tags = array(), $expire = null)
     {
-        $this->createStale($key, $expire);
+        $this->createStale([$key], $expire);
         $this->createTags($tags);
+        $this->save(array($this->generateDataKey($key) => $data));
 
-        $set_query = $this->main_query_fetcher->createSetQuery();
-        $set_query->setData(array($this->generateDataKey($key) => $data));
-        $set_query->setExpire(time() + Cacher::DATA_EXPIRE);
-        $set_query->execute();
-
-        $this->cached_data[$key] = $data;
+        return true;
     }
 
     /**
-     * @param
-     * @return int|null
+     * @todo errors handling
+     * @inheritdoc
      */
-    public function lock($key)
+    public function lock($keys)
     {
-        $this->createStale($key, 1);
+        return $this->createStale($keys, ceil(self::EXPIRE_LOCK));
     }
 
     /**
@@ -91,18 +91,11 @@ class Cacher implements ICacher
      */
     public function dropTags($tags)
     {
-        $timestamp = time();
-        $tags_data = array();
-
-        foreach ($tags as $tag) {
-            $this->cached_tags[$tag] = $timestamp;
-            $tags_data[$this->generateTagKey($tag)] = $timestamp;
-        }
-
-        return $this->_setTags($tags_data);
+        return $this->createTags($tags, true);
     }
 
     /**
+     * @todo return false when failure
      * @param string[] $keys
      * @return bool
      */
@@ -112,70 +105,72 @@ class Cacher implements ICacher
 
         if (!empty($keys)) {
             $cache_keys = array();
-            $cache_tags_keys = array();
+            $cache_tags = array();
 
             foreach ($keys as $key => $tags) {
                 $cache_keys[] = $this->generateStaleKey($key);
                 $cache_keys[] = $this->generateDataKey($key);
-
-                if (empty($tags)) {
-                    $tags = $this->default_tags;
-                }
-
-                foreach ($tags as $tag) {
-                    if (!array_key_exists($tag, $this->cached_tags)) {
-                        $cache_tags_keys[$this->generateTagKey($tag)] = $tag;
-                    }
-                }
+                $cache_tags += array_flip($tags);
             }
 
-            if (!empty($cache_tags_keys)) {
-                $get_tags_query = $this->tags_query_fetcher->createGetQuery();
-                $get_tags_query->setKeys(array_keys($cache_tags_keys));
-                $cached_tags = $get_tags_query->execute();
-
-                foreach ($cached_tags as $tag_key => $tag_time) {
-                    $this->cached_tags[$cache_tags_keys[$tag_key]] = $tag_time;
-                }
-            }
-
-            $get_query = $this->main_query_fetcher->createGetQuery();
-            $get_query->setKeys($cache_keys);
-            $cached_data = $get_query->execute();
+            $this->loadTags(array_keys($cache_tags));
+            $cached_data = $this->fetch($cache_keys);
 
             foreach ($keys as $key => $tags) {
-                if (empty($tags)) {
-                    $tags = $this->default_tags;
-                }
-
-                if ($this->validateCacheData($key, $cached_data) && $this->validateCacheTags($key, $tags, $cached_data)) {
-                    $this->cached_data[$key] = $cached_data[$this->generateDataKey($key)];
+                if ($this->validateCacheData($key, $tags, $cached_data)) {
+                    $this->cached_data[$key] = $cached_data[ $this->generateDataKey($key) ];
                 } elseif (!$this->validateCacheStale($key, $cached_data)) {
-                    $this->errors[$key] = 'Race condition exception!';
+                    $this->errors[$key] = self::ERR_RACE_CONDITION;
                 }
-            }
-        }
-    }
-
-    private function validateCacheTags($key, $tags, $cached_data)
-    {
-        foreach ($tags as $tag) {
-            if (!array_key_exists($tag, $this->cached_tags) || $cached_data[$this->generateStaleKey($key)] < $this->cached_tags[$tag]) {
-                return false;
             }
         }
 
         return true;
     }
 
-    private function validateCacheData($key, $cached_data)
+    private function loadTags($tags)
     {
-        return array_key_exists($this->generateStaleKey($key), $cached_data) && array_key_exists($this->generateDataKey($key), $cached_data);
+        $keys = $this->tags_common;
+
+        foreach ($tags as $tag) {
+            if (!isset($this->cached_tags[$tag])) {
+                $keys[$tag] = $this->generateTagKey($tag);
+            }
+        }
+
+        if ($keys) {
+            $cached_tags = $this->fetchTags($keys);
+
+            $keys = array_flip($keys);
+            foreach ($cached_tags as $tag_key => $tag_time) {
+                $this->cached_tags[$keys[$tag_key]] = $tag_time;
+            }
+        }
+
+        return $this->cached_tags;
+    }
+
+    private function validateCacheData($key, $tags, $cached_data)
+    {
+        $stale = $this->generateStaleKey($key);
+        $result = isset($cached_data[$stale]) && array_key_exists($this->generateDataKey($key), $cached_data);
+
+        foreach ($tags as $tag) {
+            $result = $result && isset($this->cached_tags[$tag]) && $cached_data[$stale] >= $this->cached_tags[$tag];
+        }
+
+        foreach ($this->tags_common as $tag) {
+            $result = $result && isset($this->cached_tags[$tag]) && $cached_data[$stale] >= $this->cached_tags[$tag];
+        }
+
+        return $result;
     }
 
     private function validateCacheStale($key, $cached_data)
     {
-        return !array_key_exists($this->generateStaleKey($key), $cached_data) || $cached_data[$this->generateStaleKey($key)] + 1 < time();
+        return !array_key_exists($this->generateStaleKey($key), $cached_data)
+            || $cached_data[ $this->generateStaleKey($key) ] + self::EXPIRE_LOCK < microtime(true)
+        ;
     }
 
     private function generateStaleKey($key)
@@ -195,72 +190,131 @@ class Cacher implements ICacher
 
     public function setExpire($expire)
     {
-        $this->expire = (int)$expire;
+        $this->expire = (int) $expire;
+
         return $this;
     }
 
     public function setTags(array $tags)
     {
-        $this->default_tags = $tags;
+        foreach ($tags as $tag) {
+            $this->tags_common[$tag] = $this->generateTagKey($tag);
+        }
+
         return $this;
     }
 
-    private function createStale($key, $expire = null)
+    /**
+     * @param string[] $keys
+     * @param int|null $expire
+     * @return bool
+     */
+    private function createStale($keys, $expire = null)
     {
-        $timestamp = time();
+        $timestamp = $this->getTimestamp();
+        $expire = $expire !== null ? $expire : $this->expire;
+        $stales = [];
 
-        if ($expire === null) {
-            $expire = $this->expire !== null ? $this->expire : Cacher::DEFAULT_EXPIRE;
+        foreach ($keys as $key) {
+            $stale = $this->generateStaleKey($key);
+            $stales[$stale] = $timestamp;
         }
 
-        $cache_stale = array($this->generateStaleKey($key) => $timestamp);
-
-        $set_query = $this->main_query_fetcher->createSetQuery();
-        $set_query->setData($cache_stale);
-        $set_query->setExpire($timestamp + $expire);
-        $set_query->execute();
+        return $this->save($stales, $expire);
     }
 
-    private function createTags($tags = array())
+    /**
+     * @param string[] $tags
+     * @param bool $update
+     * @return bool
+     */
+    private function createTags($tags = array(), $update = false)
     {
-        $timestamp = time();
-
-        if (empty($tags)) {
-            $tags = $this->default_tags;
-        }
-
-        $get_tags = array();
+        $result = true;
+        $tags = array_flip($tags);
+        $tags_all = $this->tags_common + $tags;
         $new_tags = array();
 
-        foreach (array_diff_key($tags, $this->cached_tags) as $tag) {
-            $get_tags[$tag] = $this->generateTagKey($tag);
-        }
+        if (!empty($tags_all)) {
+            $get_tags_data = $this->loadTags(array_keys($tags_all));
 
-        if (!empty($get_tags)) {
-            $get_tags_query = $this->tags_query_fetcher->createGetQuery();
-            $get_tags_query->setKeys($get_tags);
-            $get_tags_data = $get_tags_query->execute();
-
-            foreach ($get_tags as $tag => $tag_key) {
-                if (array_key_exists($tag_key, $get_tags_data)) {
-                    $this->cached_tags[$tag] = $get_tags_data[$tag_key];
-                } else {
-                    $this->cached_tags[$tag] = $timestamp;
-                    $new_tags[$tag_key] = $timestamp;
+            foreach ($tags_all as $tag => $tag_key) {
+                if (!isset($get_tags_data[$tag]) || ($update && isset($tags[$tag]))) {
+                    $new_tags[$tag] = $this->generateTagKey($tag);
                 }
             }
 
-            if (!empty($new_tags)) {
-                $this->_setTags($new_tags);
+            if (!empty($new_tags) && $result = $this->saveTags($new_tags)) {
+                $this->cached_tags = array_fill_keys(array_keys($new_tags), $this->getTimestamp());
             }
         }
+
+        return $result;
     }
 
-    private function _setTags($tags_data)
+    private function fetch(array $keys, IQueryStrategy $fetcher = null)
     {
-        $set_tags_query = $this->tags_query_fetcher->createSetQuery();
-        $set_tags_query->setData($tags_data);
-        $set_tags_query->setExpire(time() + Cacher::TAGS_EXPIRE);
-        $ret = $set_tags_query->execute();
+        $fetcher = $fetcher ? : $this->storage;
+        $query = $fetcher->createGetQuery();
+        $query->setKeys($keys);
+
+        return $query->execute();
+    }
+
+    private function save(array $data, $expire = null, IQueryStrategy $storage = null)
+    {
+        $storage = $storage ? : $this->storage;
+        $set_query = $storage->createSetQuery();
+        $set_query->setData($data);
+
+        if ($expire !== null) {
+            $set_query->setExpire(time() + $expire);
+        }
+
+        return $set_query->execute();
+    }
+
+    private function fetchTags(array $keys)
+    {
+        return $this->fetch($keys, $this->storage_tags);
+    }
+
+    private function saveTags(array $keys)
+    {
+        return $this->save(array_fill_keys($keys, $this->getTimestamp()), null, $this->storage_tags);
+    }
+
+    private function getTimestamp()
+    {
+        return $this->timestamp ? : $this->timestamp = microtime(true);
+    }
+
+    /**
+     * @return IQueryStrategy
+     */
+    public function getStorage()
+    {
+        return $this->storage;
+    }
+
+    /**
+     * @return IQueryStrategy
+     */
+    public function getStorageTags()
+    {
+        return $this->storage_tags;
+    }
+
+    /**
+     * @param IQueryStrategy $storage
+     * @param IQueryStrategy $storage_tags
+     * @return Cacher
+     */
+    public function setStorages(IQueryStrategy $storage, IQueryStrategy $storage_tags = null)
+    {
+        $this->storage = $storage;
+        $this->storage_tags = $storage_tags ? $storage_tags : $storage;
+
+        return $this;
     }
 }

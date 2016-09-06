@@ -3,9 +3,10 @@
 namespace Imhonet\Connection\Query;
 
 use Imhonet\Connection\IErrorable;
+use Imhonet\Connection\Cache\ICachable;
 use Imhonet\Connection\Resource\IResource;
 
-interface IQuery extends \SeekableIterator, IErrorable
+interface IQuery extends \SeekableIterator, IErrorable, ICachable
 {
     const STATUS_OK = 0;
     const STATUS_ERROR = 1;
@@ -61,21 +62,36 @@ interface IQuery extends \SeekableIterator, IErrorable
     public function getDebugInfo($type = self::INFO_TYPE_QUERY);
 
     /**
-     * @return string
+     * @param int $expire
+     * @return self
      */
-    public function getCacheKey();
-
-    /**
-     */
-    public function disableQuery();
+    public function setCacheExpire($expire);
 
     /**
      * @return int|null
      */
-    public function getExpire();
+    public function getCacheExpire();
 
-       /**
-     * @return string[]|null
+    /**
+     * @param string[] $tags
+     * @return self
      */
-    public function getTags();
+    public function setCacheTags(array $tags);
+
+    /**
+     * @return string[]
+     */
+    public function getCacheTags();
+
+    /**
+     * @param bool|null $state
+     * @return bool
+     */
+    public function disable($state = true);
+
+    /**
+     * @inheritDoc
+     * @return self
+     */
+    public function current();
 }

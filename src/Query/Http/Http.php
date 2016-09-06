@@ -180,6 +180,8 @@ abstract class Http extends Query
     protected function getResponse()
     {
         if (!$this->hasResponse()) {
+            assert($this->disable(null) === false, 'Response of disabled query shouldn\'t be get');
+
             try {
                 $this->handle = $this->getRequest();
             } catch (\Exception $e) {
@@ -288,6 +290,14 @@ abstract class Http extends Query
         return (int) $this->isError();
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getCacheKey()
+    {
+        return md5($this->url . json_encode($this->params) . json_encode($this->getHeaders()));
+    }
+
     protected function getDebugInfoCurrent($type = self::INFO_TYPE_QUERY)
     {
         switch ($type) {
@@ -298,20 +308,28 @@ abstract class Http extends Query
                 )));
                 break;
             case self::INFO_TYPE_ERROR:
-                $http_code = curl_getinfo($this->getResponse(), CURLINFO_HTTP_CODE);
-                $result = $http_code >= 400 ? $http_code : curl_error($this->getResponse());
+                if ($this->hasResponse()) {
+                    $http_code = curl_getinfo($this->getResponse(), CURLINFO_HTTP_CODE);
+                    $result = $http_code >= 400 ? $http_code : curl_error($this->getResponse());
+                }
+
+                if (empty($result)) {
+                    $result = parent::getDebugInfo(self::INFO_TYPE_ERROR);
+                }
                 break;
             case self::INFO_TYPE_BLOCKING:
                 $result = self::BLOCKING_FREE;
                 break;
             case self::INFO_TYPE_DURATION:
-                $info = curl_getinfo($this->getResponse());
-                $result = $info['http_code'] ? $info['total_time'] : null;
+                if ($this->hasResponse()) {
+                    $info = curl_getinfo($this->getResponse());
+                    $result = $info['http_code'] ? $info['total_time'] : null;
+                }
                 break;
             default:
                 $result = parent::getDebugInfo($type);
         }
 
-        return (string) $result;
+        return isset($result) ? (string) $result : '';
     }
 }

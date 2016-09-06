@@ -2,11 +2,10 @@
 
 namespace Imhonet\Connection\Query\Memcached;
 
-use Imhonet\Connection\Query\ICacheSetQuery;
 use Imhonet\Connection\Query\Query;
-use Respect\Validation\Validator;
+use Imhonet\Connection\Cache\Query\ISet;
 
-class Set extends Query implements ICacheSetQuery
+class Set extends Query implements ISet
 {
     private $data = array();
     private $expire = 0;
@@ -17,21 +16,24 @@ class Set extends Query implements ICacheSetQuery
     private $response;
 
     /**
-     * @param array $data [key => value, ...]
+     * @inheritdoc
      */
     public function setData(array $data)
     {
         $this->data = $data;
+
+        return $this;
     }
 
     /**
-     * @param int $expire
+     * @inheritdoc
      */
-    public function setExpire($value)
+    public function setExpire($expire)
     {
-        assert(Validator::create()->digit()->noWhitespace()->validate($value));
+        assert(is_numeric($expire));
+        $this->expire = $expire;
 
-        $this->expire = $value;
+        return $this;
     }
 
     /**
@@ -108,5 +110,18 @@ class Set extends Query implements ICacheSetQuery
      */
     public function getLastId()
     {
+    }
+
+    public function getDebugInfo($type = self::INFO_TYPE_QUERY)
+    {
+        switch ($type) {
+            case self::INFO_TYPE_QUERY:
+                $result = implode("\t", array_keys($this->data));
+                break;
+            default:
+                $result = parent::getDebugInfo($type);
+        }
+
+        return isset($result) ? (string) $result : '';
     }
 }

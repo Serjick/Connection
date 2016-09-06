@@ -20,6 +20,9 @@ abstract class Query implements IQuery
     
     protected $disable = false;
 
+    private $expire;
+    private $tags = [];
+
     /**
      * @param IResource $resource
      * @return $this
@@ -137,24 +140,58 @@ abstract class Query implements IQuery
     /**
      * @inheritDoc
      */
-    public function disableQuery()
+    public function disable($state = true)
     {
-        $this->disable = true;
+        if (is_bool($state)) {
+            $this->disable = $state;
+        }
+
+        return $this->disable;
     }
 
     /**
      * @inheritDoc
      */
-    public function getExpire()
+    public function setCacheExpire($expire)
     {
-        return null;
+        $this->expire = $expire;
+
+        return $this;
+    }
+
+    final protected function getCacheExpireCurrent()
+    {
+        return $this->expire;
     }
 
     /**
      * @inheritDoc
      */
-    public function getTags()
+    public function getCacheExpire()
     {
-        return null;
+        return $this->getCacheExpireCurrent();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCacheTags(array $tags)
+    {
+        $this->tags = array_merge($this->tags, $tags);
+
+        return $this;
+    }
+
+    final protected function getCacheTagsCurrent()
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCacheTags()
+    {
+        return $this->getCacheTagsCurrent();
     }
 }
