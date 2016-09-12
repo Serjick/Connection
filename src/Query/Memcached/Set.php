@@ -48,7 +48,7 @@ class Set extends Query implements ISet
     {
         if ($this->response === null) {
             try {
-                $this->response = $this->getResource()->setMulti($this->data, $this->expire);
+                $this->response = $this->getResource()->setMulti($this->data, (int) $this->expire);
             } catch (\Exception $e) {
                 $this->response = false;
             }
