@@ -156,19 +156,43 @@ class GetTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(4, $query->getCount());
     }
 
-    public function testCountTotalSimple()
+    public function testCountTotalAfterCount()
     {
         $statement = 'SELECT * FROM user';
 
-        $query = $this->getMock('\\Imhonet\\Connection\\Query\\PDO\\MySQL\\Get', array('getCount'));
-        $query
-            ->expects($this->atLeastOnce())
-            ->method('getCount')
+        $stmt = $this->getMock('\\PDOStatement', array('execute', 'fetchColumn'));
+        $stmt
+            ->expects($this->at(0))
+            ->method('execute')
+            ->will($this->returnValue(true))
+        ;
+        $stmt
+            ->expects($this->at(1))
+            ->method('fetchColumn')
             ->will($this->returnValue(7))
         ;
 
-        /** @var \Imhonet\Connection\Query\PDO\MySQL\Get $query */
-        $query->addStatement($statement);
+        $pdo = $this->getMock('\\PDO', array('prepare'), array('sqlite::memory:'));
+        $pdo
+            ->expects($this->at(0))
+            ->method('prepare')
+            ->with(sprintf(Get::SQL_WRAP_COUNT, $statement))
+            ->will($this->returnValue($stmt))
+        ;
+
+        $resource = $this->getMock('\\Imhonet\\Connection\\Resource\\PDO\\MySQL', array('getHandle'));
+        $resource
+            ->expects($this->any())
+            ->method('getHandle')
+            ->will($this->returnValue($pdo))
+        ;
+
+        /** @var \Imhonet\Connection\Resource\PDO\MySQL $resource */
+        $query = (new Get())
+            ->setResource($resource)
+            ->addStatement($statement)
+        ;
+        $query->getCount();
 
         $this->assertEquals(7, $query->getCountTotal());
     }
@@ -224,18 +248,25 @@ class GetTest extends \PHPUnit_Framework_TestCase
     {
         $statement = 'SELECT * FROM user LIMIT 10, 5';
 
-        $stmt = $this->getMock('\\PDOStatement', array('execute', 'columnCount', 'fetchColumn'));
-        $stmt
+        $stmt_query = $this->getMock('\\PDOStatement', array('execute'));
+        $stmt_query
             ->expects($this->at(0))
             ->method('execute')
             ->will($this->returnValue(true))
         ;
-        $stmt
+
+        $stmt_count = $this->getMock('\\PDOStatement', array('execute', 'columnCount', 'fetchColumn'));
+        $stmt_count
+            ->expects($this->at(0))
+            ->method('execute')
+            ->will($this->returnValue(true))
+        ;
+        $stmt_count
             ->expects($this->at(1))
             ->method('columnCount')
             ->will($this->returnValue(4))
         ;
-        $stmt
+        $stmt_count
             ->expects($this->at(2))
             ->method('fetchColumn')
             ->with(3)
@@ -246,8 +277,14 @@ class GetTest extends \PHPUnit_Framework_TestCase
         $pdo
             ->expects($this->at(0))
             ->method('prepare')
+            ->with($statement)
+            ->will($this->returnValue($stmt_query))
+        ;
+        $pdo
+            ->expects($this->at(1))
+            ->method('prepare')
             ->with('SELECT * , COUNT(1) FROM user #LIMIT 10, 5')
-            ->will($this->returnValue($stmt))
+            ->will($this->returnValue($stmt_count))
         ;
 
         $resource = $this->getMock('\\Imhonet\\Connection\\Resource\\PDO\\MySQL', array('getHandle'));
@@ -262,6 +299,7 @@ class GetTest extends \PHPUnit_Framework_TestCase
             ->setResource($resource)
             ->addStatement($statement)
         ;
+        $query->execute();
 
         $this->assertEquals(7, $query->getCountTotal());
     }
