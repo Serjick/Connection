@@ -1,7 +1,5 @@
 <?php
 
-namespace Imhonet\Connection\DataFormat\Hash\Http;
-
 require_once 'functions.php';
 
 class JsonTest extends \PHPUnit_Framework_TestCase
@@ -26,7 +24,7 @@ class JsonTest extends \PHPUnit_Framework_TestCase
     private static $mode;
 
     /**
-     * @var Json
+     * @var \Imhonet\Connection\DataFormat\Hash\Http\Json
      */
     private $formater;
 
@@ -38,31 +36,31 @@ class JsonTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         self::$mode = self::MODE_REGULAR;
-        $this->formater = new Json();
+        $this->formater = new \Imhonet\Connection\DataFormat\Hash\Http\Json();
     }
 
     public function testCreate()
     {
-        $this->assertInstanceOf('Imhonet\Connection\DataFormat\IHash', $this->formater);
+        $this->assertInstanceOf('\\Imhonet\\Connection\\DataFormat\\IHash', $this->formater);
     }
 
     public function testData()
     {
-        $this->formater->setData(curl_init());
+        $this->formater->setData($this->getResponse());
         $this->assertEquals(self::$data[self::$mode], $this->formater->formatData());
     }
 
     public function testDataFailure()
     {
         self::$mode = self::MODE_FAILURE;
-        $this->formater->setData(curl_init());
+        $this->formater->setData($this->getResponse());
         $this->assertEquals(array(), $this->formater->formatData());
     }
 
     public function testDataMalformed()
     {
         self::$mode = self::MODE_MALFORMED;
-        $this->formater->setData(curl_init());
+        $this->formater->setData($this->getResponse());
         $this->assertEquals(array(), $this->formater->formatData());
     }
 
@@ -71,14 +69,28 @@ class JsonTest extends \PHPUnit_Framework_TestCase
         $id = 123;
         $resource = curl_init();
         curl_setopt($resource, \CURLOPT_PRIVATE, json_encode(['id' => $id]));
-        $this->formater->setData($resource);
+        $this->formater->setData($this->getResponse($resource));
         $this->assertEquals($id, $this->formater->getIndex());
     }
 
     public function testValue()
     {
-        $this->formater->setData(curl_init());
+        $this->formater->setData($this->getResponse());
         $this->assertNull($this->formater->formatValue());
+    }
+
+    /**
+     * @param resource|null $resource
+     * @return \Imhonet\Connection\Response\Http
+     */
+    private function getResponse($resource = null)
+    {
+        $resource = $resource ? : curl_init();
+
+        return (new \Imhonet\Connection\Response\Http)
+            ->setMultiHandle($resource)
+            ->addHandle($resource)
+        ;
     }
 
     public static function getData()

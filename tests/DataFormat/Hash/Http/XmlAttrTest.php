@@ -1,7 +1,5 @@
 <?php
 
-namespace Imhonet\Connection\DataFormat\Hash\Http;
-
 use Imhonet\Connection\DataFormat\IHash;
 
 require_once 'functions.php';
@@ -30,31 +28,42 @@ class XmlAttrTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         self::$mode = self::MODE_REGULAR;
-        $this->formater = new XmlAttr();
+        $this->formater = new \Imhonet\Connection\DataFormat\Hash\Http\XmlAttr();
     }
 
     public function testCreate()
     {
-        $this->assertInstanceOf('Imhonet\Connection\DataFormat\IHash', $this->formater);
+        $this->assertInstanceOf('\\Imhonet\\Connection\\DataFormat\\IHash', $this->formater);
     }
 
     public function testData()
     {
-        $this->formater->setData(curl_init());
+        $this->formater->setData($this->getResponse());
         $this->assertEquals(array('status' => 200, 'message' => 'OK'), $this->formater->formatData());
     }
 
     public function testFailure()
     {
         self::$mode = self::MODE_FAILURE;
-        $this->formater->setData(curl_init());
+        $this->formater->setData($this->getResponse());
         $this->assertEquals(array(), $this->formater->formatData());
     }
 
     public function testValue()
     {
-        $this->formater->setData(curl_init());
+        $this->formater->setData($this->getResponse());
         $this->assertNull($this->formater->formatValue());
+    }
+
+    /**
+     * @return \Imhonet\Connection\Response\Http
+     */
+    private function getResponse()
+    {
+        return (new \Imhonet\Connection\Response\Http)
+            ->setMultiHandle(curl_init())
+            ->addHandle(curl_init())
+        ;
     }
 
     public static function getData()
