@@ -42,7 +42,7 @@ class Get extends PDO\Get
                     $this->count_total = $this->getCount();
                 } else {
                     $this->execute();
-                    $this->count_total = $this->getCountTotalAfterExecute();
+                    $this->count_total = !$this->getErrorCode() ? $this->getCountTotalAfterExecute() : 0;
                 }
             } else {
                 if ($this->isExecuted() && $this->isSCFR()) {
@@ -57,7 +57,7 @@ class Get extends PDO\Get
                     }
 
                     $this->execute();
-                    $this->count_total = $this->getCountTotalAfterExecute();
+                    $this->count_total = !$this->getErrorCode() ? $this->getCountTotalAfterExecute() : 0;
                 }
             }
         }
