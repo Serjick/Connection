@@ -1,4 +1,5 @@
 language: php
+sudo: false
 
 matrix:
   fast_finish: true
@@ -8,9 +9,16 @@ matrix:
     - php: 5.6
       env: PHPCS=true
     - php: 7.0
-    - php: hhvm
+    - php: hhvm-3.9
+      sudo: true
+      dist: trusty
+      group: edge
   allow_failures:
     - php: 7.0
+    - php: hhvm
+      sudo: true
+      dist: trusty
+      group: edge
 
 cache:
   directories:
@@ -20,7 +28,7 @@ cache:
 before_script:
   - mkdir -p "$HOME/.php-cs-fixer"
   - travis_retry composer self-update
-  - sh -c 'if [ "$TRAVIS_PHP_VERSION" != "hhvm" ]; then phpenv config-add travis.config.ini; fi;'
+  - bash -c 'if [[ "$TRAVIS_PHP_VERSION" != hhvm* ]]; then phpenv config-add travis.config.ini; fi;'
 
 install: composer install --dev
 
