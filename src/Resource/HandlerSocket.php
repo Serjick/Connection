@@ -6,12 +6,15 @@ use HSPHP\ReadSocket;
 
 class HandlerSocket implements IResource
 {
+    const DEFAULT_PORT = 9998;
+
     /**
      * @var ReadSocket
      */
     private $resource;
 
     private $host;
+    private $port = self::DEFAULT_PORT;
     private $db;
 
     /**
@@ -21,7 +24,7 @@ class HandlerSocket implements IResource
     {
         if (!$this->resource) {
             $this->resource = new ReadSocket();
-            $this->resource->connect($this->host);
+            $this->resource->connect($this->host, $this->port);
         }
 
         return $this->resource;
@@ -49,11 +52,12 @@ class HandlerSocket implements IResource
     }
 
     /**
-     * @deprecated
      * @inheritdoc
      */
     public function setPort($port)
     {
+        $this->port = $port;
+
         return $this;
     }
 
@@ -94,11 +98,11 @@ class HandlerSocket implements IResource
     }
 
     /**
-     * @deprecated
      * @inheritdoc
      */
     public function getPort()
     {
+        return $this->port;
     }
 
     /**

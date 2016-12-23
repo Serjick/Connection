@@ -234,6 +234,7 @@ class Factory implements IConnect
     {
         $resource = new HandlerSocket();
         $resource->setHost($this->params['host'])
+            ->setPort(isset($this->params['port']) ? $this->params['port'] : HandlerSocket::DEFAULT_PORT)
             ->setDatabase($this->params['database']);
 
         return $resource;
